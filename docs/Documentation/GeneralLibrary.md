@@ -14,9 +14,9 @@ description: "Documentation of my 'GeneralLibrary' module."
 
 ### module.NumberManipulation.*
 
-> **\*OrderOfMagnitude(number) → number**
+#### **\*OrderOfMagnitude(number) → number**
 
->*Finds the order of magnitude of an inputted number.*
+#### *Finds the order of magnitude of an inputted number.*
 
 Inputs:
 
@@ -26,9 +26,9 @@ Returns:
 
 number\<number\> → The order of magnitude.
 
-> **\*Rounder(number, number?) → number**
+#### **\*Rounder(number, number?) → number**
 
->*Rounds a number to a number of decimal places. Accepts a second overload to specify how many places toround to.*
+#### *Rounds a number to a number of decimal places. Accepts a second overload to specify how many places toround to.*
 
 Inputs:
 
@@ -40,9 +40,9 @@ Returns:
 
 number\<number\> → The rounded number.
 
-> **\*Truncater(number, number) → (number, number)**
+#### **\*Truncater(number, number) → (number, number)**
 
->*Truncates a number with the specified number of leading didgits. The returned number will be the leading didgits × e-1 and the order of magnitude of the original number.*
+#### *Truncates a number with the specified number of leading didgits. The returned number will be the leading didgits × e-1 and the order of magnitude of the original number.*
 
 Inputs:
 
@@ -56,9 +56,9 @@ number1\<number\> → The truncated number. ***Note:** This number is returned a
 
 number2\<number> → The order of magnitude of the number.
 
-> **\*Delta(number|Vector3, number|Vector3) → number**
+#### **\*Delta(number|Vector3, number|Vector3) → number**
 
->*Finds the difference (delta) between two numbers OR two Vector3s. Both types much match in order to function.*
+#### *Finds the difference (delta) between two numbers OR two Vector3s. Both types much match in order to function.*
 
 Inputs:
 
@@ -74,9 +74,9 @@ number\<number\> → The difference of the two numbers. If the initial types are
 
 ### Conversions
 
-> **\*StringToVector3(string, string) → Vector3**
+#### **\*StringToVector3(string, string) → Vector3**
 
->*Converts a character/string seperated string into a Vector3. NOTE: The first overload should be formatted as x\[seperator\]y\[seperator\]z.*
+#### *Converts a character/string seperated string into a Vector3. NOTE: The first overload should be formatted as x\[seperator\]y\[seperator\]z.*
 
 Inputs:
 
@@ -88,9 +88,9 @@ Returns:
 
 Vector3\<Vector3\> → The Vector3 spliced together from stringEquivilant and seperator.
 
-> **\*Vector3ToCFrame(Vector3, Vector3?) → CFrame**
+#### **\*Vector3ToCFrame(Vector3, Vector3?) → CFrame**
 
->*Converts one or two Vector3s to a CFrame. The first Vector3 is used as the positional component of the CFrame, and the second Vector3 is used for the rotational component of the  CFrame. The second Vector3 can be left blank to keep the rotation of the resulting CFrame (0, 0, 0).*
+#### *Converts one or two Vector3s to a CFrame. The first Vector3 is used as the positional component of the CFrame, and the second Vector3 is used for the rotational component of the  CFrame. The second Vector3 can be left blank to keep the rotation of the resulting CFrame (0, 0, 0).*
 
 Inputs:
 
@@ -102,9 +102,9 @@ Returns:
 
 CFrame\<CFrame\> → A CFrame with the position of position and rotation of rotation.
 
-> **\*Vector3ToString(Vector3, string, boolean?, number?) → string**
+#### **\*Vector3ToString(Vector3, string, boolean?, number?) → string**
 
->*Converts a Vector3 to a string using a seperator (second overload). The returned string is formatted as "Vector3.X\[string\]Vector3.Y\[string\]Vector3.Z". The third overload can be filled in to round the components of the Vector3. The fourth overload can be filled in to specify to how many places.*
+#### *Converts a Vector3 to a string using a seperator (second overload). The returned string is formatted as "Vector3.X\[string\]Vector3.Y\[string\]Vector3.Z". The third overload can be filled in to round the components of the Vector3. The fourth overload can be filled in to specify to how many places.*
 
 Inputs:
 
