@@ -8,7 +8,7 @@ module.TableManipulation = {}
 Returns the order of magnitude (b10) of the inputted number.
 ]]
 function module.NumberManipulation.OrderOfMagnitude(number: number): number
-	assert(typeof(number) == "number", "Number is not a <number>. Number type: " .. typeof(number))
+	assert(typeof(number) == "number", "'number' is not a number. 'number' type: " .. typeof(number))
 
 	if string.split(tostring(number), "e")[2] then
 		return tonumber(string.split(tostring(number), "e")[2]) or 0
@@ -39,9 +39,13 @@ end
 --[[
 Returns the inputted number rounded to places amount of decimal places.
 ]]
-function module.NumberManipulation.Rounder(input: number, places: number): number
-	assert(typeof(input) == "number", "Input is not a <number>. Input type: " .. typeof(input))
-	assert(typeof(places) == "number", "Places is not a <number>. Pumber type: " .. typeof(places))
+function module.NumberManipulation.Rounder(input: number, places: number?): number
+	if places == nil then
+		places = 0
+	end
+
+	assert(typeof(input) == "number", "'input' is not a number. 'input' type: " .. typeof(input))
+	assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
 
 	local leading, remainder = math.modf(input)
 	local extraPlaces = 0
@@ -83,8 +87,8 @@ number (leading didgits) (NOTE: the leading digits is e-1),
 number (order of magnitude (b10)).
 ]]
 function module.NumberManipulation.Truncater(number: number, places: number): (number, number)
-	assert(typeof(number) == "number", "Number is not a <number>. Number type: " .. typeof(number))
-	assert(typeof(places) == "number", "Places is not a <number>. Pumber type: " .. typeof(places))
+	assert(typeof(number) == "number", "'number' is not a number. 'number' type: " .. typeof(number))
+	assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
 
 	local oom = module.NumberManipulation.OrderOfMagnitude(number) * -1
 	local actual = math.floor(number * math.pow(10, oom + places)) / math.pow(10, places)
@@ -98,16 +102,18 @@ Returns the delta between two numbers or two Vector3s.
 Warns if both variables do not match types or are not numbers/Vector3s.
 ]]
 function module.NumberManipulation.Delta(initial: number | Vector3, final: number | Vector3): number
-	assert(typeof(initial) == "number" or "Vector3", "Initial type is not a number of Vector3. Initial type: " .. typeof(initial))
-	assert(typeof(final) == "number" or "Vector3", "Fnitial type is not a number of Vector3. Fnitial type: " .. typeof(final))
+	local initialType = typeof(initial)
+
+	assert(initialType == "number" or "Vector3", "'initial' type is not a number of Vector3. 'initial' type: " .. initialType)
+	assert(typeof(final) == initialType, "'final' type does not match initial type. 'final' type: " .. typeof(final) .. " ('initial' type: " .. initialType ..")")
 
 	if typeof(initial) == "number" and typeof(final) == "number" then
 		return final - initial
 	elseif typeof(initial) == "Vector3" and typeof(final) == "Vector3" then
 		return (final - initial).Magnitude
-	else
-		error("Types passed to GeneralLibrary:Delta() are not matching.")
 	end
+	
+	return final - initial
 end
 
 --[[
@@ -121,8 +127,8 @@ seperator [string] → The seperator between each positional axis.
 
 ]]
 function module.Conversions.StringToVector3(stringEquivilant: string, seperator: string): Vector3
-	assert(typeof(stringEquivilant) == "string", "StringEquivilant is not a <string>. StringEquivilant type: " .. typeof(stringEquivilant))
-	assert(typeof(seperator) == "string", "Seperator is not a <string>. Seperator type: " .. typeof(seperator))
+	assert(typeof(stringEquivilant) == "string", "'stringEquivilant' is not a string. 'stringEquivilant' type: " .. typeof(stringEquivilant))
+	assert(typeof(seperator) == "string", "'seperator' is not a string. 'seperator' type: " .. typeof(seperator))
 
 	local split = string.split(stringEquivilant, seperator)
 	return Vector3.new(tonumber(split[1]), tonumber(split[2]), tonumber(split[3]))
@@ -143,8 +149,8 @@ function module.Conversions.Vector3ToCFrame(position: Vector3, rotation: Vector3
 		rotation = Vector3.new()
 	end
 
-	assert(typeof(position) == "Vector3", "Position is not a <Vector3>. Position type: " .. typeof(position))
-	assert(typeof(rotation) == "Vector3", "Rotaton is not a <Vector3>. Rotaton type: " .. typeof(rotation))
+	assert(typeof(position) == "Vector3", "'position' is not a Vector3. 'position' type: " .. typeof(position))
+	assert(typeof(rotation) == "Vector3", "'rotaton' is not a Vector3. 'rotaton' type: " .. typeof(rotation))
 
 	return CFrame.new(position) * CFrame.Angles(rotation.X, rotation.Y, rotation.Z)
 end
@@ -163,14 +169,19 @@ round [boolean?] → Whether the Vector3 components should be rounded.
 places [number?] → How many places to round the components to.
 
 ]]
-function module.Conversions.Vector3ToString(vector: Vector3, seperator: string, round: boolean?, places: number?): string | nil
-	assert(typeof(vector) == "Vector3", "Vector is not a <Vector3>. Vector type: " .. typeof(vector))
-	assert(typeof(seperator) == "string", "Seperator is not a <string>. Seperator type: " .. typeof(seperator))
+function module.Conversions.Vector3ToString(vector: Vector3, seperator: string, round: boolean?, places: number?): string
+	assert(typeof(vector) == "Vector3", "'vector' is not a Vector3. 'vector' type: " .. typeof(vector))
+	assert(typeof(seperator) == "string", "'seperator' is not a string. 'seperator' type: " .. typeof(seperator))
+
+	assert(typeof(round) == "boolean" or round == nil, "'round' is not a boolean or nil. 'round''s type: " .. typeof(round))
 
 	if round == true then
-		assert(typeof(places) == "string", "Places is not a <number>. Places type: " .. typeof(places))
+		if places == nil then
+			places = 0
+		end
 
-		places = places :: number
+		assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
+
 		return module.NumberManipulation.Rounder(vector.X, places) .. seperator
 			.. module.NumberManipulation.Rounder(vector.Y, places) .. seperator
 			.. module.NumberManipulation.Rounder(vector.Z, places)
@@ -192,13 +203,13 @@ places [number?] → How many places to round the components to.
 
 ]]
 function module.Conversions.CFrameAnglesToVector3(converted: CFrame, round: boolean?, places: number?): Vector3
-	assert(typeof(converted) == "CFrame", "Converted is not a <CFrame>. Converted type: " .. typeof(converted))
+	assert(typeof(converted) == "CFrame", "'converted' is not a CFrame. 'converted' type: " .. typeof(converted))
 
 	local angleX, angleY, angleZ = converted:ToEulerAnglesXYZ()
 	local tempVector = Vector3.new(angleX, angleY, angleZ)
 
 	if round == true then
-		assert(typeof(places) == "string", "Places is not a <number>. Places type: " .. typeof(places))
+		assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
 
 		places = places :: number
 		return Vector3.new(
@@ -212,15 +223,15 @@ function module.Conversions.CFrameAnglesToVector3(converted: CFrame, round: bool
 end
 
 --[[
-Creates a new table ordered based off relative distances. NOTE: The inputted table's subtables must first be ordered.
+Creates a new table ordered based off relative distances.
 
 Accepts overloads of:
 
 tableOfRelativeDistances [table] → The table used to create a new table based off distances closest to the previous index. This table must be formatted as:
 
-{[number1] = {Distance = number, Index = number}}
+{[number1] = {[number2] = {Distance = number, Index = number}}}
 
-Where number1 is the index in the table, Index corresponds to the index to the corresponding distance number1 is from, and Distance is the distance between the two points.
+Where number1 is the index in the table, number2 the index of the new point, Index (same as number2) corresponds to the index to the corresponding distance number1 is from, and Distance is the distance between the two points.
 
 Returns:
 
@@ -228,7 +239,25 @@ Returns:
 
 Where number1 is the ordered positions based off index 1 in tableOfRelativeDistances, Distance represents the distance between number1 and number1 + 1, and Index represents the original index of the number + 1 in tableOfRelativeDistances.
 ]]
-function module.TableManipulation.OrderRelativeTable(tableOfRelativeDistances : {number : {number : {Distance : number, Index : number}}}) : {[number] : {Distance : number, Index : number}}
+function module.TableManipulation.OrderRelativeTable(tableOfRelativeDistances : {[number] : {[number] : {Distance : number, Index : number}}}) : {[number] : {Distance : number, Index : number}}
+	assert(typeof(tableOfRelativeDistances) == "table", "The passed value is not a table. Value type: " .. typeof(tableOfRelativeDistances))
+	assert(table.maxn(tableOfRelativeDistances) ~= 0, "tableOfRelativeDistances is not numerically indexed.")
+
+    for i, _ in pairs(tableOfRelativeDistances) do
+		assert(typeof(tableOfRelativeDistances[i]) == "table", "tableOfRelativeDistances[" .. i .. "] is not a table. The type is: " .. typeof(tableOfRelativeDistances[i]))
+
+        table.sort(tableOfRelativeDistances[i], function(a, b)
+			assert(typeof(a.Distance) == "number" and typeof(b.Distance) == "number", "The value of tableOfRelativeDistances[" .. i .. "][x].Distance is not a number. The values are: (a) " .. typeof(a.Distance) .. " (b) " .. typeof(b.Distance))
+
+            if a.Distance < b.Distance then
+                return true
+            else
+                return false
+            end
+        end)
+        task.wait()
+    end
+
 	local orderedDistances: {[number] : {Distance : number, Index : number}} = {}
 
 	-- NOTE: SPECIAL CASE IF table.maxn OF tableOfRelativeDistances IS 1
@@ -314,13 +343,19 @@ Where number1 is the index based off tableOfPositions, Index is correlated to an
 NOTE: When number1 and Index are the same, Distance is math.huge.
 ]]
 function module.TableManipulation.CreateRelativeTable(tableOfPositions : {number : Vector3}, startPoint : Vector3?): {number : {number : {Distance : number, Index : number}}}
+	assert(typeof(tableOfPositions) == "table", "The passed value is not a table. The passed value's type: " .. typeof(tableOfPositions))
+	assert(table.maxn(tableOfPositions) ~= 0, "'tableOfPositions' is not numerically indexed.")
+
 	local relativeDistances = {}
 
 	if startPoint then
+		assert(typeof(startPoint) == "Vector3", "'startPoint' is not a Vector3. 'startPoint''s type: " .. typeof(startPoint))
 		table.insert(tableOfPositions, 1, startPoint)
 	end
 
     for i : number, actualPosition : Vector3 in pairs(tableOfPositions) do
+		assert(typeof(actualPosition) == "Vector3", "'tableOfPositions[" .. i .. "]''s value is not a Vector3. The type is actually: " .. typeof(actualPosition))
+
         relativeDistances[i] = {}
         for j : number, position : Vector3 in pairs(tableOfPositions) do
 			local relative = (actualPosition-position).Magnitude

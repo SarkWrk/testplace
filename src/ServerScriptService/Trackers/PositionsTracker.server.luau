@@ -96,27 +96,13 @@ local function SortPositionTable(positionalData : {[Instance] : Vector3}, startP
     end
     local newPositionTable = {}
 
-    local relativeDistances 
+    local orderedDistances
 
     if startPosition then
-        relativeDistances = helperModule.TableManipulation.CreateRelativeTable(positionTable, startPosition)
+        orderedDistances = helperModule.TableManipulation.OrderRelativeTable(helperModule.TableManipulation.CreateRelativeTable(positionTable, startPosition))
     else
-        relativeDistances = helperModule.TableManipulation.CreateRelativeTable(positionTable)
+        orderedDistances = helperModule.TableManipulation.OrderRelativeTable(helperModule.TableManipulation.CreateRelativeTable(positionTable))
     end
-
-    -- Sorting the relative distance subtables
-    for i, _ in pairs(relativeDistances) do
-        table.sort(relativeDistances[i], function(a, b)
-            if a.Distance < b.Distance then
-                return true
-            else
-                return false
-            end
-        end)
-        task.wait()
-    end
-
-    local orderedDistances : {number : {Distance : number, Index : number}} = helperModule.TableManipulation.OrderRelativeTable(relativeDistances)
 
     for i : number, subtable : {Distance : number, Index : number} in pairs(orderedDistances) do
         newPositionTable[i] = positionTable[subtable.Index]
