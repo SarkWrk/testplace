@@ -1,5 +1,5 @@
-layout : page
-title : "2"
-permalink : /test
+layout: page
+title: "2"
+permalink: /test
 
 *Also hi!*

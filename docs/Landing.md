@@ -1,4 +1,4 @@
-layout : page
-title : "landing"
+layout: page
+title: "landing"
 
 *hi! :D*
