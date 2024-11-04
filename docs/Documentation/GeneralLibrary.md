@@ -1,5 +1,4 @@
 ---
-layout: page
 title: "Docs/GeneralLibrary"
 permalink: /GeneralLibrary
 ---
