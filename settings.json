@@ -1,0 +1,9 @@
+{
+    "[lua]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua"
+    },
+
+    "[Luau]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua"
+    }
+}
