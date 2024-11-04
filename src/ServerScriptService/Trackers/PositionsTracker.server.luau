@@ -208,7 +208,7 @@ local function PositionTableIndexedByInstancePathName(positionTable)
 end
 
 local function ReportLocations(positions : {[string] : Vector3}, tag : string)
-    return promises.new(function(resolve, reject, onCancel)
+    return promises.new(function(resolve)
         local output = "Trouvé " .. tag .. ".e(s) à :"
         local addToTotalSpace = 10
     
