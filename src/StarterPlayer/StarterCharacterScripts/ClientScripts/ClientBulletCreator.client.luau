@@ -46,19 +46,15 @@ packets.SBulletCreation.BulletCreation.listen(function(data)
 		end
 		
 		if data.ID == game:GetService("Players").LocalPlayer.UserId then
-			bullet.Trail1.Enabled = false
-			bullet.Trail2.Enabled = false
-
 			coroutine.resume(coroutine.create(function()
-				bullet.Trail1.Enabled = true
-				bullet.Trail2.Enabled = true
+				task.wait(5/data.Speed)
+				bullet.Parent = bulletsFolder
 			end))
 		else
 			bullet.Trail1.Enabled = true
 			bullet.Trail2.Enabled = true
+			bullet.Parent = bulletsFolder
 		end
-		
-		bullet.Parent = bulletsFolder
 		bullet.CFrame = helper.Conversions.Vector3ToCFrame(position, rotation)
 
 		tracker[data.Index].Tween = game:GetService("TweenService"):Create(bullet, TweenInfo.new(helper.NumberManipulation.Delta(position, endPosition)/data.Speed, Enum.EasingStyle.Linear), {Position = endPosition})

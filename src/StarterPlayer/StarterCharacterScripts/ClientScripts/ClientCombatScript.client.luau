@@ -20,7 +20,7 @@ function SendBulletInformation()
 		})
 		lastFired = tick()
 
-		resolve()
+		resolve("Firing bullet")
 	end)
 end
 
@@ -29,7 +29,7 @@ function SendArmedInformation(status : boolean)
 		packets.ArmClient.ArmClient.send(status)
 		safetyOff = status
 
-		resolve()
+		resolve("Switched")
 	end)
 end
 
@@ -44,24 +44,24 @@ game:GetService("UserInputService").InputBegan:Connect(function(input : InputObj
 				return
 			end
 			
-			promises.retry(SendArmedInformation, 5, true)
+			print(SendArmedInformation(true):expect())
 		end
 		
-		promises.retry(SendBulletInformation, 3)
+		SendBulletInformation():finally()
 		
 		task.wait(0.15)
 		
 		while mouseDown == true do
-			promises.retry(SendBulletInformation, 3)
+			print(SendBulletInformation():expect())
 			task.wait(0.1)
 		end
 		
 	elseif input.KeyCode == Enum.KeyCode.R then
 		if safetyOff == false then
 			setArmedManually = true
-			promises.retry(SendArmedInformation, 5, true)
+			print(SendArmedInformation(true):expect())
 		else
-			promises.retry(SendArmedInformation, 5, false)
+			print(SendArmedInformation(false):expect())
 			setArmedManually = false
 		end
 	end
@@ -75,7 +75,7 @@ end)
 
 while task.wait() do
 	if safetyOff == true and tick()-lastFired >= 0.5 and mouseDown == false and setArmedManually == false then
-		promises.retry(SendArmedInformation, 5, false)
+		print(SendArmedInformation(false):expect())
 	end
 	
 	script:SetAttribute("Safety", not safetyOff)

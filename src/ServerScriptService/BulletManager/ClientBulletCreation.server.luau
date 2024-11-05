@@ -6,7 +6,7 @@ local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("robl
 local playerData = game:GetService("SharedTableRegistry"):GetSharedTable("TrackedPlayerData")
 
 local function TryToCreateBullet(data, player : Player)
-	return promises.new(function(resolve)
+	return promises.new(function(resolve, reject)
 		local playerModel = player.Character
 
 		if playerModel then
@@ -31,14 +31,24 @@ local function TryToCreateBullet(data, player : Player)
 					}, player)
 
 					resolve()
+				else
+					if (playerModel.Head.Position - fixed.Position).Magnitude <= 5 then
+						reject(player.Name .. "'s camera is not within 5 studs of their head position.")
+					else
+						reject(player.Name .. "'s health is or is below 0.")
+					end
 				end
+			else
+				reject(player.Name .. " is not armed.")
 			end
+		else
+			reject(player.Name .. " has no character.")
 		end
 	end)
 end
 
 local function ChangePlayerArmedStatus(data : boolean, player : Player)
-	return promises.new(function(resolve)
+	return promises.new(function(resolve, reject)
 		local playerModel = player.Character
 
 		if playerModel then
@@ -49,14 +59,28 @@ local function ChangePlayerArmedStatus(data : boolean, player : Player)
 			end
 
 			resolve()
+		else
+			reject(player.Name .. " has no character.")
 		end
 	end)
 end
 
 packets.ArmClient.ArmClient.listen(function(data, player)
-	promises.retry(ChangePlayerArmedStatus, 10, data, player)
+	local success, _ = ChangePlayerArmedStatus(data, player):await()
+
+	if success then
+		print("Successfully changed player armed state")
+	else
+		warn("Could not change player arm state")
+	end
 end)
 
 packets.CBulletCreation.ClientBulletCreation.listen(function(data, player)
-	promises.retry(TryToCreateBullet, 10, data, player)
+	local success, _ = TryToCreateBullet(data, player):await()
+
+	if success then
+		print("Successfully asked server to create a bullet for the player")
+	else
+		warn("Could not ask the server to create a bullet for the player")
+	end
 end)

@@ -223,7 +223,7 @@ local function ReportLocations(positions : {[string] : Vector3}, tag : string)
                 local relDist, distExp = helperModule.NumberManipulation.Truncater((Vector3.new(position.X, 0, position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
 
                 output = output .. "<br />" .. name .. " à alt. rel. : <i>" .. relAlt * 10 .. "e" .. altExp - 1
-                .. "</i> et dist. rel. : <i>" .. relDist * 10 .. distExp - 1 .. "</i>."
+                .. "</i> et dist. rel. : <i>" .. relDist * 10 .. "e" .. distExp - 1 .. "</i>."
             else
                 output = output .. "<br />" .. name .. " à <i>" .. locatedAtPosition .. "</i>."
             end
@@ -231,7 +231,7 @@ local function ReportLocations(positions : {[string] : Vector3}, tag : string)
     
         packets.SendPositionalInformation.SendPositionalInformation.sendToAll(output)
 
-        resolve("Sent")
+        resolve()
     end)
 end
 
@@ -271,7 +271,7 @@ local function FindPosition(tag : string) : {{["Position"] : Vector3, ["Instance
         return PositionTableIndexedByInstancePathName(positionalTable)
     end)
 
-    ReportLocations(PositionTableIndexedByInstancePathName(positionalTable), tag):andThen(print)
+    ReportLocations(PositionTableIndexedByInstancePathName(positionalTable), tag):finally()
 
     return positionalTable
 end

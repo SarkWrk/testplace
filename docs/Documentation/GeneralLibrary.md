@@ -4,9 +4,7 @@ permalink: /GeneralLibrary
 description: "Documentation of my 'GeneralLibrary' module."
 ---
 
-**Note:**
-
-**All numbers are in base 10.**
+**Note: All numbers are in base 10.**
 
 ## \[module_name\].NumberManipulation.*
 
@@ -26,7 +24,7 @@ number\<number\> → The order of magnitude.
 
 ### **\*Rounder(number, number?) → number**
 
-### *Rounds a number to a number of decimal places. Accepts a second overload to specify how many places toround to.*
+### *Rounds a number to a number of decimal places. Accepts a second overload to specify how many places toround to. NOTE: Attempting to round to a negative amount of decimal places can lead to unpredictable results and is not advised - however, it is possible.*
 
 <br />
 
@@ -131,3 +129,58 @@ places\<number?\> → How many places vector's components should be rounded to. 
 #### Returns:
 
 string\<string\> → A string formatted as "vector.X\[seperator\]vector.Y\[seperator\]vector.Z".
+
+### **\*CFrameAnglesToVector3(CFrame, boolean?, number?) → Vector3**
+### *Converts the rotation of a CFrame into a Vector3. The second overload can be filled in to specify if the rotation should be rounded. The third overload can be filled in to specify to how many places each component should be rounded to.*
+
+<br />
+
+#### Overloads:
+
+converted\<CFrame\> → The CFrame who's rotation should be taken from.
+
+round\<boolean?\> → Whether the components of converted's rotation should be rounded.
+
+places\<number?\> → How many places to round each component to.
+
+#### Returns:
+
+Vector3\<Vector3\> → A Vector3 where the X component corresponds to converted's X rotational component, the Y component corresponds to converted's Y rotational component, and the Z component corresponds to converted's Z rotational component.
+
+<hr>
+
+## \[module_name\].TableManipulation.*
+
+### **\*.CreateRelativeTable({[number] : Vector3}, Vector3?) → {[number] : {[number] : {Distance : number, Index : number}}}**
+### **
+
+***NOTE:** The distances calculated between each point uses \*.NumberConversions.Delta(). If the calculated distance is incorrect, it is most likely because Delta() is wrong, or the points that are inputted are incorrect.*
+
+<br />
+
+#### Inputs:
+
+tableOfPositions\<{}\> → A table of index-based positions.
+
+startPoint\<Vector3?\> → Whether to insert a point into tableOfPositions as the starting point of the table.
+
+***Note:** This value will be inserted into tableOfPositions at index 1, shifting all other values down by one before any calculations start.*
+
+#### Returns:
+
+{[number] : {[number] : {Distance : number, Index : number}}}\<{}\> → A table with subtables who's subtables contain the distance between the current index's point and another index's point, with index refering to the index of the other point.
+
+### **\*.OrderRelativeTable({[number] : {[number] : {Distance : number, Index : number}}}) → {[number] : {Distance : number, Index : number}}**
+### *Orders a list based off which next distance is closest to the previous index starting at index 1. Check the inputs to see how this list must be formatted.*
+
+<br />
+
+#### Inputs:
+
+tableOfRelativeDistances\<{}\> → The list who's order should be found.
+
+***NOTE:** This table has to be formatted as: {[number1] = {[number2] = {Distance = number, Index = number2}}} where number2 is the index in the dictionary from where the distance is calculated from. This format is the exact same as the one that is returned by \*.TableManipulation.CreateRelativeTable().*
+
+#### Returns:
+
+{[number] : {Distance : number, Index : number}}\<{}\> → The ordered list of groups based off the relative distances between each point starting at index 1 of tableOfRelativeDistances. Each subgroup contains two values: "Distance" and "Index". Distance is the distance between the current point and the next point, and Index is the next point.

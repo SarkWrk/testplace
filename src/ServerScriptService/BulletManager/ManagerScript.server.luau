@@ -125,7 +125,7 @@ local function BulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTa
 		sendInformation.ID = playerId
 
 		task.synchronize()
-		promises.retry(SendToClients, 2, sendInformation)
+		SendToClients(sendInformation):expect(warn)
 
 		-- Monitor the bullet for specific information
 		heartbeat = game:GetService("RunService").Heartbeat:ConnectParallel(function()
@@ -150,7 +150,14 @@ local function BulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTa
 end
 
 function ClientBulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTagged : {string}, MoveTowards : CFrame, BulletDrop : number, DistanceTimeOut : number, Speed : number, Pierce : number, PierceDamageLoss : number, StartPosition : Vector3}, player: Player)
-	promises.retry(BulletCreation, 5, info, player)
+	print("Create client info")
+	local success, _ = BulletCreation(info, player):await()
+
+	if success then
+		print("Created a bullet for the client!")
+	else
+		warn("Could not create a bullet for the client.")
+	end
 end
 
 function ServerBulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTagged : {string}, MoveTowards : CFrame, BulletDrop : number, DistanceTimeOut : number, Speed : number, Pierce : number, PierceDamageLoss : number, StartPosition : Vector3})
@@ -159,7 +166,7 @@ function ServerBulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTa
 		return
 	end
 
-	promises.retry(BulletCreation, 2, info)
+	BulletCreation(info):catch(warn)
 end
 
 script.Parent:BindToMessage("ServerCreate", ServerBulletCreation)

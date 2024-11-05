@@ -11,20 +11,33 @@ baseTextLabel.TextSize = textSize
 baseTextLabel.AutoLocalize = false
 baseTextLabel.TextWrapped = true
 baseTextLabel.RichText = true
+baseTextLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-packets.SendPositionalInformation.SendPositionalInformation.listen(function(message)
-    print("Recieved message: ", message)
+local function CreateBox(message)
     local textLabel = baseTextLabel:Clone()
 
     local amountOfLineBreaks = #string.split(message, "<br />")
 
-    textLabel.Size = UDim2.fromOffset(maxLabelSize, amountOfLineBreaks * 15 + 15)
+    textLabel.Size = UDim2.fromOffset(maxLabelSize, amountOfLineBreaks * textSize + textSize)
     textLabel.Text = message
     textLabel.RichText = true
     textLabel.Parent = script.Parent.Information
+
+    while task.wait() do
+        if textLabel.TextFits == true then
+            break
+        end
+        textLabel.Size = UDim2.fromOffset(textLabel.Size.X.Offset, textLabel.Size.Y.Offset + textSize)
+    end
+end
+
+packets.SendPositionalInformation.SendPositionalInformation.listen(function(message)
+    CreateBox(message)
 end)
 
-for _ = 1, 5 do
+while task.wait() do
     script.Parent.Information.CanvasPosition = Vector2.new(0, 10000)
-    task.wait(1)
+    if script.Parent.Information.CanvasPosition ~= Vector2.new(0, 0) then
+        break
+    end
 end

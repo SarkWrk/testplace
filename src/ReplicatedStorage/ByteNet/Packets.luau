@@ -47,7 +47,7 @@ packets.ArmClient = byteNet.defineNamespace("ArmClient", function()
 		ArmClient = byteNet.definePacket({
 			value = byteNet.bool,
 
-			reliabilityType = "unreliable"
+			reliabilityType = "reliable"
 		})
 	}
 end)

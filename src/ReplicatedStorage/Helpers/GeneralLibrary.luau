@@ -209,9 +209,12 @@ function module.Conversions.CFrameAnglesToVector3(converted: CFrame, round: bool
 	local tempVector = Vector3.new(angleX, angleY, angleZ)
 
 	if round == true then
+		if places == nil then
+			places = 0
+		end
+
 		assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
 
-		places = places :: number
 		return Vector3.new(
 			module.NumberManipulation.Rounder(tempVector.X, places),
 			module.NumberManipulation.Rounder(tempVector.Y, places),
@@ -242,6 +245,8 @@ Where number1 is the ordered positions based off index 1 in tableOfRelativeDista
 function module.TableManipulation.OrderRelativeTable(tableOfRelativeDistances : {[number] : {[number] : {Distance : number, Index : number}}}) : {[number] : {Distance : number, Index : number}}
 	assert(typeof(tableOfRelativeDistances) == "table", "The passed value is not a table. Value type: " .. typeof(tableOfRelativeDistances))
 	assert(table.maxn(tableOfRelativeDistances) ~= 0, "tableOfRelativeDistances is not numerically indexed.")
+
+	local startIndex = 1
 
     for i, _ in pairs(tableOfRelativeDistances) do
 		assert(typeof(tableOfRelativeDistances[i]) == "table", "tableOfRelativeDistances[" .. i .. "] is not a table. The type is: " .. typeof(tableOfRelativeDistances[i]))
@@ -312,7 +317,7 @@ function module.TableManipulation.OrderRelativeTable(tableOfRelativeDistances : 
         return newIndex
     end
 
-    local prevIndex: number = 1
+    local prevIndex: number = startIndex
 
     for _, _ in pairs(tableOfRelativeDistances) do
         prevIndex = AddToOrderedDistances(prevIndex)
@@ -339,12 +344,10 @@ Returns:
 {[number1] = {Distance = number, Index = number}}
 
 Where number1 is the index based off tableOfPositions, Index is correlated to another index in the table, and Distance is the magnitude of the distance between the two points.
-
-NOTE: When number1 and Index are the same, Distance is math.huge.
 ]]
 function module.TableManipulation.CreateRelativeTable(tableOfPositions : {number : Vector3}, startPoint : Vector3?): {number : {number : {Distance : number, Index : number}}}
 	assert(typeof(tableOfPositions) == "table", "The passed value is not a table. The passed value's type: " .. typeof(tableOfPositions))
-	assert(table.maxn(tableOfPositions) ~= 0, "'tableOfPositions' is not numerically indexed.")
+	assert(table.maxn(tableOfPositions) ~= 0, "'tableOfPositions' is not numerically indexed or has no values.")
 
 	local relativeDistances = {}
 
@@ -358,13 +361,9 @@ function module.TableManipulation.CreateRelativeTable(tableOfPositions : {number
 
         relativeDistances[i] = {}
         for j : number, position : Vector3 in pairs(tableOfPositions) do
-			local relative = (actualPosition-position).Magnitude
+			local relative = module.NumberManipulation.Delta(position, actualPosition)
 			
-			if relative ~= 0 then
-				relativeDistances[i][j] = {Distance = relative, Index = j}
-			else
-				relativeDistances[i][j] = {Distance = math.huge, Index = j}
-			end
+			relativeDistances[i][j] = {Distance = relative, Index = j}
         end
 		task.wait()
     end
