@@ -16,8 +16,6 @@ When you open an issue or make a pull request please follow this *non-extensive*
 
 [Making A PR](https://github.com/SarkWrk/Testplace/blob/main/CONTRIBUTING.md#making-a-pr)
 
-[Examples](https://github.com/SarkWrk/Testplace/blob/main/CONTRIBUTING.md#examples)
-
 <hr>
 
 ## Labelling Your PR/Issue
