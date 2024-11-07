@@ -25,7 +25,7 @@
 #Documentation-NavBar {
     position: absolute;
     left: 0px;
-    background-color: rgba(109, 109, 109, 0.267);
+    background-color: rgb(109, 109, 109);
     width: 250px;
     height: 95%;
     text-wrap: wrap;
@@ -47,7 +47,7 @@
 }
 
 #DocumentationBody {
-    background-color: rgba(48, 48, 48, 0.329);
+    background-color: rgb(48, 48, 48);
 }
 
 #DocumentationContent {
