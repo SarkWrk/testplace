@@ -25,16 +25,20 @@
 #Documentation-NavBar {
     position: absolute;
     left: 0px;
-    background-color: darkgrey;
+    background-color: rgba(109, 109, 109, 0.267);
     width: 250px;
     height: 95%;
     text-wrap: wrap;
 
-    a {color: white;}
-    p1 {font-size : 18px;}
-    p2 {font-size:16px;}
-    p3 {font-size: 14px;}
-    ul {margin-left: -22px;}
+    outline-style: outset;
+    outline-width: 3px;
+    outline-color: white;
+
+    a {color: rgb(207, 206, 206);}
+    p1 {font-size : 18px; color: rgb(207, 206, 206);}
+    p2 {font-size:16px; color: rgb(207, 206, 206);}
+    p3 {font-size: 14px; color: rgb(207, 206, 206);}
+    ul {margin-left: -22px; color: rgb(255, 255, 255);}
 }
 
 #Site-Directory-Documentation {
@@ -42,11 +46,14 @@
     h {color: aqua;}
 }
 
-#Documentation {
+#DocumentationBody {
+    background-color: rgba(48, 48, 48, 0.329);
+}
+
+#DocumentationContent {
     position: absolute;
-    left: 250px;
-    background-color: gray;
-    width: 100%;
+    left: 253px;
+    width: fit-content;
     height: 95%;
 }
 
