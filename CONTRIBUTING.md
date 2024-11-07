@@ -26,7 +26,7 @@ Please label your Issues and PRs correctly.
 >- **bug**             | *Used when you think that something isn't working correctly*
 >- **documentation**   | *Used for improving documentation*
 >- **enhancement**     | *Used when you are making a backwards-compatible suggestion/PR*
->- **expiremental**    | *Used when you are making a non-backwards-compatible suggestion/PR*
+>- **experimental**    | *Used when you are making a non-backwards-compatible suggestion/PR*
 >- **question**        | *Used when you're unsure if you have found a bug, but still want to report it*
 >- **suggestion**      | *Used when you want to make a suggestion*
 
