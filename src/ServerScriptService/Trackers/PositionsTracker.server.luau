@@ -235,7 +235,7 @@ local function ReportLocations(positions : {[string] : Vector3}, tag : string)
     end)
 end
 
-local function FindPosition(tag : string) : {{["Position"] : Vector3, ["Instance"] : Instance}}
+local function FindPosition(tag : string) : {{["Position"] : Vector3, ["Instance"] : Part|Model}}
     task.desynchronize()
     local positionalTable = {}
 

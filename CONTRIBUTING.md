@@ -8,15 +8,15 @@ When you open an issue or make a pull request please follow this *non-extensive*
 <hr>
 
 ## Table of Contents:
-[Labelling Your PR/Issue](https://github.com/SarkWrk/TestPathExperience/blob/main/CONTRIBUTING.md#labelling-your-prissue)
+[Labelling Your PR/Issue](https://github.com/SarkWrk/testplace/blob/main/CONTRIBUTING.md#labelling-your-prissue)
 
-[Making A Suggestion](https://github.com/SarkWrk/TestPathExperience/blob/main/CONTRIBUTING.md#making-a-suggestion)
+[Making A Suggestion](https://github.com/SarkWrk/Testplace/blob/main/CONTRIBUTING.md#making-a-suggestion)
 
-[Making An Issue](https://github.com/SarkWrk/TestPathExperience/blob/main/CONTRIBUTING.md#making-an-issue)
+[Making An Issue](https://github.com/SarkWrk/Testplace/blob/main/CONTRIBUTING.md#making-an-issue)
 
-[Making A PR](https://github.com/SarkWrk/TestPathExperience/blob/main/CONTRIBUTING.md#making-a-pr)
+[Making A PR](https://github.com/SarkWrk/Testplace/blob/main/CONTRIBUTING.md#making-a-pr)
 
-[Examples](https://github.com/SarkWrk/TestPathExperience/blob/main/CONTRIBUTING.md#examples)
+[Examples](https://github.com/SarkWrk/Testplace/blob/main/CONTRIBUTING.md#examples)
 
 <hr>
 
@@ -37,8 +37,8 @@ Please label your Issues and PRs correctly.
 >- **attention**         | *Used for when a bug/question doesn't seem right due to how the script is coded*
 >- **duplicate**         | *Used for when an Issue/PR is a duplicate of a different Issue/PR*
 >- **help wanted**       | *Used for when an Issue/PR has a hard time being fixed, and external help would be heavily welcomed*
->- **noteabug**          | *Used for when an Issue/PR tagged with `question` or `bug` is not a bug*
->- **wonthappen**         | *Used for when an Issue/PR (bug, question, or suggestion) will not be worked on*
+>- **notabug**           | *Used for when an Issue/PR tagged with `question` or `bug` is not a bug*
+>- **wonthappen**        | *Used for when an Issue/PR (bug, question, or suggestion) will not be worked on*
 
 <hr>
 
@@ -95,7 +95,7 @@ When making an issue, please format your issue like this (formatting is not requ
 [A description/explanation of how you think the issue can be fixed.\]
 
 >[!IMPORTANT]
->**If you know how to code it and are willing to put it into the codebase, please make a [PR](https://github.com/SarkWrk/TestPathExperience/blob/main/CONTRIBUTING.md#making-a-pr) instead of an issue**
+>**If you know how to code it and are willing to put it into the codebase, please make a [PR](https://github.com/SarkWrk/Testplace/blob/main/CONTRIBUTING.md#making-a-pr) instead of an issue**
 
 <hr>
 

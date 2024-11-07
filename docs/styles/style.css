@@ -1,0 +1,16 @@
+#Site-directory {
+    font-size: smaller;
+    a {color :blue;}
+    position: absolute;
+    bottom: 5px;
+}
+
+#Error-404 {
+    font-size: 20px;
+    a {color : aqua;}
+}
+
+#Base {
+    background-color: black;
+    color: white;
+}

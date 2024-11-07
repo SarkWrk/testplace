@@ -1,3 +1,5 @@
+--!strict
+
 local module = {}
 
 module.Conversions = {}
@@ -64,9 +66,9 @@ function module.NumberManipulation.Rounder(input: number, places: number?): numb
 		roundingRemainer = 0
 	else
 		if actualRemainder < 0 then
-			roundingRemainer = tonumber(string.sub(actualRemainder, 4, 4)) or 0 * 0.1
+			roundingRemainer = tonumber(string.sub(tostring(actualRemainder), 4, 4)) or 0 * 0.1
 		else
-			roundingRemainer = tonumber(string.sub(actualRemainder, 3, 3)) or 0 * 0.1
+			roundingRemainer = tonumber(string.sub(tostring(actualRemainder), 3, 3)) or 0 * 0.1
 		end
 	end
 
@@ -345,7 +347,7 @@ Returns:
 
 Where number1 is the index based off tableOfPositions, Index is correlated to another index in the table, and Distance is the magnitude of the distance between the two points.
 ]]
-function module.TableManipulation.CreateRelativeTable(tableOfPositions : {number : Vector3}, startPoint : Vector3?): {number : {number : {Distance : number, Index : number}}}
+function module.TableManipulation.CreateRelativeTable(tableOfPositions : {[number] : Vector3}, startPoint : Vector3?): {[number] : {[number] : {Distance : number, Index : number}}}
 	assert(typeof(tableOfPositions) == "table", "The passed value is not a table. The passed value's type: " .. typeof(tableOfPositions))
 	assert(table.maxn(tableOfPositions) ~= 0, "'tableOfPositions' is not numerically indexed or has no values.")
 
