@@ -1,6 +1,6 @@
 ---
 title: "Docs/GeneralLibrary"
-permalink: /GeneralLibrary
+permalink: /Archive/GeneralLibrary
 description: "Documentation of my 'GeneralLibrary' module."
 ---
 

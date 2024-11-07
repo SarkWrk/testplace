@@ -9,7 +9,7 @@ module.TableManipulation = {}
 --[[
 Returns the order of magnitude (b10) of the inputted number.
 ]]
-function module.NumberManipulation.OrderOfMagnitude(number: number): number
+function module.NumberManipulation.oom(number: number): number
 	assert(typeof(number) == "number", "'number' is not a number. 'number' type: " .. typeof(number))
 
 	if string.split(tostring(number), "e")[2] then
@@ -41,7 +41,7 @@ end
 --[[
 Returns the inputted number rounded to places amount of decimal places.
 ]]
-function module.NumberManipulation.Rounder(input: number, places: number?): number
+function module.NumberManipulation.Round(input: number, places: number?): number
 	if places == nil then
 		places = 0
 	end
@@ -54,7 +54,7 @@ function module.NumberManipulation.Rounder(input: number, places: number?): numb
 
 	-- Finds the leading digit
 	if math.abs(leading) == 0 then
-		extraPlaces = module.NumberManipulation.OrderOfMagnitude(remainder) * -1
+		extraPlaces = module.NumberManipulation.oom(remainder) * -1
 	end
 
 	local actualLeading, actualRemainder = math.modf(input * math.pow(10, places + extraPlaces))
@@ -88,11 +88,11 @@ number (leading didgits) (NOTE: the leading digits is e-1),
 
 number (order of magnitude (b10)).
 ]]
-function module.NumberManipulation.Truncater(number: number, places: number): (number, number)
+function module.NumberManipulation.Truncate(number: number, places: number): (number, number)
 	assert(typeof(number) == "number", "'number' is not a number. 'number' type: " .. typeof(number))
 	assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
 
-	local oom = module.NumberManipulation.OrderOfMagnitude(number) * -1
+	local oom = module.NumberManipulation.oom(number) * -1
 	local actual = math.floor(number * math.pow(10, oom + places)) / math.pow(10, places)
 
 	return actual, oom * -1
@@ -184,9 +184,9 @@ function module.Conversions.Vector3ToString(vector: Vector3, seperator: string, 
 
 		assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
 
-		return module.NumberManipulation.Rounder(vector.X, places) .. seperator
-			.. module.NumberManipulation.Rounder(vector.Y, places) .. seperator
-			.. module.NumberManipulation.Rounder(vector.Z, places)
+		return module.NumberManipulation.Round(vector.X, places) .. seperator
+			.. module.NumberManipulation.Round(vector.Y, places) .. seperator
+			.. module.NumberManipulation.Round(vector.Z, places)
 	else
 		return vector.X .. seperator .. vector.Y .. seperator .. vector.Z
 	end
@@ -218,9 +218,9 @@ function module.Conversions.CFrameAnglesToVector3(converted: CFrame, round: bool
 		assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
 
 		return Vector3.new(
-			module.NumberManipulation.Rounder(tempVector.X, places),
-			module.NumberManipulation.Rounder(tempVector.Y, places),
-			module.NumberManipulation.Rounder(tempVector.Z, places)
+			module.NumberManipulation.Round(tempVector.X, places),
+			module.NumberManipulation.Round(tempVector.Y, places),
+			module.NumberManipulation.Round(tempVector.Z, places)
 		)
 	else
 		return tempVector
