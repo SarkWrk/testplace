@@ -1,33 +1,9 @@
-#Site-directory {
-    font-size: 15px;
-    a {color :rgb(74, 74, 243);}
-    position: absolute;
-    bottom: 5px;
-    left: 5px;
-}
-
-#Error-404 {
-    font-size: 20px;
-    a {color : aqua;}
-}
-
-#Base {
-    background-color: black;
-    color: white;
-}
-
-#Dependencies {
-    h3 {color : coral}
-    p1 {color : red}
-    a {color : rgb(22, 202, 163)}
-}
-
 #Documentation-NavBar {
     position: absolute;
     left: 0px;
     background-color: rgb(109, 109, 109);
     width: 250px;
-    height: 95%;
+    height: calc(100% - 30px);
     text-wrap: wrap;
 
     outline-style: outset;
@@ -53,8 +29,8 @@
 #DocumentationContent {
     position: absolute;
     left: 253px;
-    width: fit-content;
-    height: 95%;
+    width: calc(100% - 253px);
+    height: 100%;
 }
 
 #Documentation-PathTo {
