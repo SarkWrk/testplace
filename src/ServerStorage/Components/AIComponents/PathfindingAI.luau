@@ -153,14 +153,15 @@ This function cleans up the component to be able to be GC'd. Any connections to 
 When called will:
 1. Fire the ___Destroying event.
 2. Set class.information.___stop_pathfinding to true.
-3. Destroy, (if applicable) self.information.visualisationinformation.___visualisation_folder and self.information.pathfindinginformation.___path,
-4. Disconnect all signals bar ___Changed and ___Destroying.
-5. Wait 2 seconds since :Destroy() was called.
+3. Destroy, (if applicable) class.information.visualisationinformation.___visualisation_folder and class.information.pathfindinginformation.___path,
+4. Disconnect all signals baring ___Changed and ___Destroying.
+5. Wait 2 seconds since class.signals.____Destroying was called.
 6. Remove all references to class.information and class.___important.
 7. Disconnect ___Changed and ___Destroying.
 8. Remove all references to class.signals.
 ]]
 function class.schema.Destroy(self : AIPathfindingComponent)
+    print(self)
     self.signals.___Destroying:Fire()
 
     local destroyStartTime = tick()
@@ -194,9 +195,8 @@ function class.schema.Destroy(self : AIPathfindingComponent)
     end
 
     local function RemoveReferences()
-        self.information.___targetinformation = nil
+        self.information = nil
         self.___important = nil
-        self.information.RANDOM = nil
     end
 
     DestroyObjects()
@@ -213,6 +213,8 @@ function class.schema.Destroy(self : AIPathfindingComponent)
     self.signals.___Destroying:Destroy()
 
     self.signals = nil
+    
+    self = nil
 end
 
 --[[
