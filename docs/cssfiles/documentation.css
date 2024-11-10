@@ -17,11 +17,6 @@
     ul {margin-left: -22px; color: rgb(255, 255, 255);}
 }
 
-#Site-Directory-Documentation {
-    a {color:chartreuse;}
-    h {color: aqua;}
-}
-
 #DocumentationBody {
     background-color: rgb(48, 48, 48);
 }

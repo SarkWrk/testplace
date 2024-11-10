@@ -1,5 +1,6 @@
 local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("ByteNet"):WaitForChild("Packets"))
 local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+local helper = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local camera = workspace.CurrentCamera
 local mouseDown = false
 local safetyOff = false
@@ -44,24 +45,24 @@ game:GetService("UserInputService").InputBegan:Connect(function(input : InputObj
 				return
 			end
 			
-			print(SendArmedInformation(true):expect())
+			helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendArmedInformation, true, true))
 		end
 		
-		SendBulletInformation():finally()
+		helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendBulletInformation, false), true)
 		
 		task.wait(0.15)
 		
 		while mouseDown == true do
-			print(SendBulletInformation():expect())
+			helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendBulletInformation, false), true)
 			task.wait(0.1)
 		end
 		
 	elseif input.KeyCode == Enum.KeyCode.R then
 		if safetyOff == false then
 			setArmedManually = true
-			print(SendArmedInformation(true):expect())
+			helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendArmedInformation, false, true))
 		else
-			print(SendArmedInformation(false):expect())
+			helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendArmedInformation, false, false))
 			setArmedManually = false
 		end
 	end
@@ -75,7 +76,7 @@ end)
 
 while task.wait() do
 	if safetyOff == true and tick()-lastFired >= 0.5 and mouseDown == false and setArmedManually == false then
-		print(SendArmedInformation(false):expect())
+		helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendArmedInformation, true, false))
 	end
 	
 	script:SetAttribute("Safety", not safetyOff)

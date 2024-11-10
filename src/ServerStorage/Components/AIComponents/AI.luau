@@ -17,7 +17,7 @@ function class.interface.New(info: types.AIConfigurations)
 		info.firedEvent,
 		info.difficulty
 	)
-	self.Pathfinding = require(script.Parent:WaitForChild("PathfindingAI")).interface.New(
+	self.Pathfinding = require(script.Parent:WaitForChild("PathfindingAIOld")).interface.New(
 		info.owner,
 		info.rig,
 		info.pathfindingInformation,
@@ -31,7 +31,7 @@ function class.interface.New(info: types.AIConfigurations)
 	return self
 end
 
-function class.schema.Shutoff(self: BaseAI, pathfindScript: Script, combatScript: Script, owner: Script)
+function class.schema.Shutoff(self: AI, pathfindScript: Script, combatScript: Script, owner: Script)
 	if owner == pathfindScript and owner == combatScript then
 		coroutine.resume(coroutine.create(function()
 			while self.Combat.Shutoff == false and self.Pathfinding.Shutoff == false do
@@ -59,7 +59,7 @@ function class.schema.Shutoff(self: BaseAI, pathfindScript: Script, combatScript
 	end
 end
 
-function class.schema.CleanUp(self: BaseAI)
+function class.schema.CleanUp(self: AI)
 	local _, _ = pcall(function()
 		self.Combat:CleanUp()
 	end)
@@ -68,6 +68,6 @@ function class.schema.CleanUp(self: BaseAI)
 	end)
 end
 
-export type BaseAI = typeof(class.interface.New(table.unpack(...)))
+export type AI = typeof(class.interface.New(table.unpack(...)))
 
 return class

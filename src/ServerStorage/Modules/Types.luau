@@ -132,7 +132,7 @@ export type AIConfigurations = {
 	pathfindingInformation: PathfindingAIConfigurations,
 }
 
-export type BaseGun = {
+export type Gun = {
 	TypeOfBullet : number,
 	Damage : number,
 	Range : number,

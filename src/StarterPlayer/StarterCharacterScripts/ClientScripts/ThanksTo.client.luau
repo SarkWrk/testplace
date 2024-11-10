@@ -21,9 +21,10 @@ end
 AddThanks("CRSplineModules [v2.0.0]", "bhristt", 1, true)
 AddThanks("ByteNet", "ffrostfall", 1)
 AddThanks("roblox-lua-promise", "evaera", 1)
+AddThanks("FastSignal", "LucasMZ", 1)
 
 AddThanks("Luau LSP", "JohnnyMorganz", 2)
-AddThanks("Rojo", "evaera(?)", 2)
+AddThanks("Rojo", "The Rojo Team", 2)
 
 if game:GetService("RunService"):IsStudio() == false then
     print(thankyouModulesMessage)

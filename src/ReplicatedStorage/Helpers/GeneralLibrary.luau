@@ -5,6 +5,93 @@ local module = {}
 module.Conversions = {}
 module.NumberManipulation = {}
 module.TableManipulation = {}
+module.Promises = {}
+
+export type PromiseReturn = {
+	Resolve : any,
+	Resolved : boolean,
+	Error : any?,
+	Reject : any?,
+	Failure : any?,
+	Promise : (...any) -> ...any,
+}
+
+function module.Promises.ExceptionHandler(PromiseReturn : PromiseReturn, reportSuccess : boolean?) : ((...any) -> ...any, PromiseReturn)
+	local function GetTraceback(onlyFirstTrace : boolean)
+		local traceback = debug.traceback("example", 4)
+		local splitTraceback = traceback:split("\n")
+
+		if onlyFirstTrace == true then
+			return splitTraceback[4]
+		end
+
+		local trace = ""
+
+		for i, v in pairs(splitTraceback) do
+			if i == 1 then
+				continue
+			end
+			
+			trace = trace .. "\n" .. v
+		end
+
+		return trace
+	end
+
+	if PromiseReturn.Resolved == false then
+		if PromiseReturn.Error then
+			error("Promise errored: " .. PromiseReturn.Error .. GetTraceback(false), 4)
+		end
+		
+		if PromiseReturn.Reject then
+			warn("Promise was rejected: " .. PromiseReturn.Reject .. GetTraceback(false))
+		end
+
+		return PromiseReturn.Promise, PromiseReturn
+	end
+
+	if not reportSuccess then
+		return PromiseReturn.Promise, PromiseReturn
+	end
+
+	local _, _ = pcall(function()
+		print(tostring(PromiseReturn.Resolve) .. " - " .. GetTraceback(true))
+	end)
+
+	return PromiseReturn.Promise, PromiseReturn
+end
+
+function module.Promises.PromiseHandler(promise : (...any) -> ...any, await : boolean, ... : any) : PromiseReturn
+	local result : PromiseReturn = {Resolve = nil, Resolved = false, Reject = nil, Error = nil, Failure = nil, Promise = promise}
+
+	local function successFunction(... : any)
+		result.Resolve = ...
+		result.Resolved = true
+	end
+
+	local function failureFunction(... : any)
+		result.Failure = ...
+	end
+
+	if await ~= true then
+		promise(...):andThen(successFunction, failureFunction)
+
+		return result
+	end
+
+	local worked : boolean, returned : any = promise(...):await()
+
+	if worked == false then
+		result.Reject = returned
+
+		return result
+	end
+
+	result.Resolved = true
+	result.Resolve = returned
+
+	return result
+end
 
 --[[
 Returns the order of magnitude (b10) of the inputted number.
@@ -14,28 +101,28 @@ function module.NumberManipulation.oom(number: number): number
 
 	if string.split(tostring(number), "e")[2] then
 		return tonumber(string.split(tostring(number), "e")[2]) or 0
-	else
-		local splitter = string.split(tostring(number), ".")
-		local lead = string.len(splitter[1])
-
-		local split = splitter[2]
-
-		if split == nil then
-			return lead
-		else
-			local counter = 0
-
-			for _, v in pairs(string.split(split, "0")) do
-				if v ~= "0" then
-					break
-				else
-					counter += 1
-				end
-			end
-
-			return counter + lead
-		end
 	end
+
+	local splitter = string.split(tostring(number), ".")
+	local lead = string.len(splitter[1])
+
+	local split = splitter[2]
+
+	if split == nil then
+		return lead
+	end
+
+	local counter = 0
+
+	for _, v in pairs(string.split(split, "0")) do
+		if v ~= "0" then
+			break
+		end
+
+		counter += 1
+	end
+
+	return counter + lead
 end
 
 --[[
@@ -105,17 +192,20 @@ Warns if both variables do not match types or are not numbers/Vector3s.
 ]]
 function module.NumberManipulation.Delta(initial: number | Vector3, final: number | Vector3): number
 	local initialType = typeof(initial)
+	local finalType = typeof(final)
 
 	assert(initialType == "number" or "Vector3", "'initial' type is not a number of Vector3. 'initial' type: " .. initialType)
-	assert(typeof(final) == initialType, "'final' type does not match initial type. 'final' type: " .. typeof(final) .. " ('initial' type: " .. initialType ..")")
+	assert(finalType == initialType, "'final' type does not match initial type. 'final' type: " .. finalType .. " ('initial' type: " .. initialType ..")")
+
+	local delta
 
 	if typeof(initial) == "number" and typeof(final) == "number" then
-		return final - initial
+		delta = final - initial
 	elseif typeof(initial) == "Vector3" and typeof(final) == "Vector3" then
-		return (final - initial).Magnitude
+		delta = (final - initial).Magnitude
 	end
-	
-	return final - initial
+
+	return delta
 end
 
 --[[
@@ -133,6 +223,7 @@ function module.Conversions.StringToVector3(stringEquivilant: string, seperator:
 	assert(typeof(seperator) == "string", "'seperator' is not a string. 'seperator' type: " .. typeof(seperator))
 
 	local split = string.split(stringEquivilant, seperator)
+
 	return Vector3.new(tonumber(split[1]), tonumber(split[2]), tonumber(split[3]))
 end
 
@@ -177,19 +268,19 @@ function module.Conversions.Vector3ToString(vector: Vector3, seperator: string, 
 
 	assert(typeof(round) == "boolean" or round == nil, "'round' is not a boolean or nil. 'round''s type: " .. typeof(round))
 
-	if round == true then
-		if places == nil then
-			places = 0
-		end
-
-		assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
-
-		return module.NumberManipulation.Round(vector.X, places) .. seperator
-			.. module.NumberManipulation.Round(vector.Y, places) .. seperator
-			.. module.NumberManipulation.Round(vector.Z, places)
-	else
+	if not round then
 		return vector.X .. seperator .. vector.Y .. seperator .. vector.Z
 	end
+
+	if places == nil then
+		places = 0
+	end
+
+	assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
+
+	return module.NumberManipulation.Round(vector.X, places) .. seperator
+		.. module.NumberManipulation.Round(vector.Y, places) .. seperator
+		.. module.NumberManipulation.Round(vector.Z, places)
 end
 
 --[[
@@ -210,21 +301,21 @@ function module.Conversions.CFrameAnglesToVector3(converted: CFrame, round: bool
 	local angleX, angleY, angleZ = converted:ToEulerAnglesXYZ()
 	local tempVector = Vector3.new(angleX, angleY, angleZ)
 
-	if round == true then
-		if places == nil then
-			places = 0
-		end
-
-		assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
-
-		return Vector3.new(
-			module.NumberManipulation.Round(tempVector.X, places),
-			module.NumberManipulation.Round(tempVector.Y, places),
-			module.NumberManipulation.Round(tempVector.Z, places)
-		)
-	else
+	if not round then
 		return tempVector
 	end
+
+	if places == nil then
+		places = 0
+	end
+
+	assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
+
+	return Vector3.new(
+		module.NumberManipulation.Round(tempVector.X, places),
+		module.NumberManipulation.Round(tempVector.Y, places),
+		module.NumberManipulation.Round(tempVector.Z, places)
+	)
 end
 
 --[[
@@ -254,14 +345,15 @@ function module.TableManipulation.OrderRelativeTable(tableOfRelativeDistances : 
 		assert(typeof(tableOfRelativeDistances[i]) == "table", "tableOfRelativeDistances[" .. i .. "] is not a table. The type is: " .. typeof(tableOfRelativeDistances[i]))
 
         table.sort(tableOfRelativeDistances[i], function(a, b)
-			assert(typeof(a.Distance) == "number" and typeof(b.Distance) == "number", "The value of tableOfRelativeDistances[" .. i .. "][x].Distance is not a number. The values are: (a) " .. typeof(a.Distance) .. " (b) " .. typeof(b.Distance))
+			assert((typeof(a.Distance) == "number") and (typeof(b.Distance) == "number"), "The value of tableOfRelativeDistances[" .. i .. "][x].Distance is not a number. The values are: (a) " .. typeof(a.Distance) .. " (b) " .. typeof(b.Distance))
 
-            if a.Distance < b.Distance then
-                return true
-            else
-                return false
-            end
+			if a.Distance < b.Distance then
+				return true
+			end
+
+			return false
         end)
+
         task.wait()
     end
 
@@ -277,13 +369,10 @@ function module.TableManipulation.OrderRelativeTable(tableOfRelativeDistances : 
     local incrementer = 0
 
 	--[[
-	Inserts a new entry into the ordered table and returns the next index to use for the function
+		Finds an index that has never been used before.
 	]]
-    local function AddToOrderedDistances(index : number)
-        incrementer += 1
-
-		local currentIndex = 1
-		local newIndex: number
+	local function FindFreeIndex(index) : (number, number)
+		local newIndex, currentIndex = nil, 1
 
 		if tableOfRelativeDistances[index][currentIndex].Distance ~= math.huge then
 			newIndex = tableOfRelativeDistances[index][currentIndex].Index
@@ -292,21 +381,38 @@ function module.TableManipulation.OrderRelativeTable(tableOfRelativeDistances : 
 			newIndex = tableOfRelativeDistances[index][currentIndex].Index
 		end
 
-		if usedIndicies[newIndex] ~= nil then
-			while task.wait() do
-				currentIndex += 1
+		if usedIndicies[newIndex] == nil then
+			return currentIndex, newIndex
+		end
 
-				if tableOfRelativeDistances[index][currentIndex].Distance ~= math.huge then
-					newIndex = tableOfRelativeDistances[index][currentIndex].Index
-				end
+		while task.wait() do
+			currentIndex += 1
 
-				if usedIndicies[newIndex] == nil then
-					break
-				elseif currentIndex % 15 == 0 then
-					task.wait()
-				end
+			if currentIndex % 15 == 0 then
+				task.wait()
+			end
+
+			if tableOfRelativeDistances[index][currentIndex].Distance == math.huge then
+				continue
+			end
+
+			newIndex = tableOfRelativeDistances[index][currentIndex].Index
+
+			if usedIndicies[newIndex] == nil then
+				break
 			end
 		end
+
+		return currentIndex, newIndex
+	end
+
+	--[[
+	Inserts a new entry into the ordered table and returns the next index to use for the function
+	]]
+    local function AddToOrderedDistances(index : number)
+        incrementer += 1
+
+		local currentIndex, newIndex = FindFreeIndex(index)
 
 		if usedIndicies[newIndex] == nil then
 			usedIndicies[newIndex] = 1
@@ -355,18 +461,21 @@ function module.TableManipulation.CreateRelativeTable(tableOfPositions : {[numbe
 
 	if startPoint then
 		assert(typeof(startPoint) == "Vector3", "'startPoint' is not a Vector3. 'startPoint''s type: " .. typeof(startPoint))
+
 		table.insert(tableOfPositions, 1, startPoint)
 	end
 
-    for i : number, actualPosition : Vector3 in pairs(tableOfPositions) do
-		assert(typeof(actualPosition) == "Vector3", "'tableOfPositions[" .. i .. "]''s value is not a Vector3. The type is actually: " .. typeof(actualPosition))
+    for initialIndex : number, actualPosition : Vector3 in pairs(tableOfPositions) do
+		assert(typeof(actualPosition) == "Vector3", "'tableOfPositions[" .. initialIndex .. "]''s value is not a Vector3. The type is actually: " .. typeof(actualPosition))
 
-        relativeDistances[i] = {}
-        for j : number, position : Vector3 in pairs(tableOfPositions) do
+        relativeDistances[initialIndex] = {}
+
+        for relatedIndex : number, position : Vector3 in pairs(tableOfPositions) do
 			local relative = module.NumberManipulation.Delta(position, actualPosition)
 			
-			relativeDistances[i][j] = {Distance = relative, Index = j}
+			relativeDistances[initialIndex][relatedIndex] = {Distance = relative, Index = relatedIndex}
         end
+
 		task.wait()
     end
 

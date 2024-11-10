@@ -16,3 +16,8 @@
     p1 {color : red}
     a {color : rgb(22, 202, 163)}
 }
+
+#Site-Directory-Documentation {
+    a {color:chartreuse;}
+    h {color: aqua;}
+}

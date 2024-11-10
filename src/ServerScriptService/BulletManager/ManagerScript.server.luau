@@ -18,41 +18,37 @@ local function SendToClients(
 		ID: number?,
 	})
 
-	return promises.new(function(resolve)
-		local createdPacket = {}
+	local createdPacket = {}
 
-		createdPacket.Index = sendData.Index
+	createdPacket.Index = sendData.Index
 
-		if sendData.Position then
-			createdPacket.PositionX = sendData.Position.X
-			createdPacket.PositionY = sendData.Position.Y
-			createdPacket.PositionZ = sendData.Position.Z
-		end
+	if sendData.Position then
+		createdPacket.PositionX = sendData.Position.X
+		createdPacket.PositionY = sendData.Position.Y
+		createdPacket.PositionZ = sendData.Position.Z
+	end
 
-		if sendData.EndPosition then
-			createdPacket.EndPositionX = sendData.EndPosition.X
-			createdPacket.EndPositionY = sendData.EndPosition.Y
-			createdPacket.EndPositionZ = sendData.EndPosition.Z
-		end
+	if sendData.EndPosition then
+		createdPacket.EndPositionX = sendData.EndPosition.X
+		createdPacket.EndPositionY = sendData.EndPosition.Y
+		createdPacket.EndPositionZ = sendData.EndPosition.Z
+	end
 
-		if sendData.Speed then
-			createdPacket.Speed = sendData.Speed
-		end
+	if sendData.Speed then
+		createdPacket.Speed = sendData.Speed
+	end
 
-		if sendData.Rotation then
-			createdPacket.RotationX = sendData.Rotation.X
-			createdPacket.RotationY = sendData.Rotation.Y
-			createdPacket.RotationZ = sendData.Rotation.Z
-		end
+	if sendData.Rotation then
+		createdPacket.RotationX = sendData.Rotation.X
+		createdPacket.RotationY = sendData.Rotation.Y
+		createdPacket.RotationZ = sendData.Rotation.Z
+	end
 
-		if sendData.ID then
-			createdPacket.ID = sendData.ID
-		end
+	if sendData.ID then
+		createdPacket.ID = sendData.ID
+	end
 
-		packets.SBulletCreation.BulletCreation.sendToAll(createdPacket)
-
-		resolve()
-	end)
+	packets.SBulletCreation.BulletCreation.sendToAll(createdPacket)
 end
 
 local function OpenIndexFinder(): number
@@ -93,8 +89,8 @@ local function OpenIndexFinder(): number
 end
 
 local function BulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTagged : {string}, MoveTowards : CFrame, BulletDrop : number, DistanceTimeOut : number, Speed : number, Pierce : number, PierceDamageLoss : number, StartPosition : Vector3}, player: Player?)
-	return promises.new(function(resolve)
-		-- Create an index in activeBullets to track the bullet that has been fired
+	return promises.new(function(resolve, _, onCancel)
+		-- Create an index in activeBullets to track the bullet thaheartbeat:Disconnect(t has been fired
 		local index = OpenIndexFinder()
 		local bullet = bulletComponent.interface.New(info)
 		local playerId
@@ -125,7 +121,7 @@ local function BulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTa
 		sendInformation.ID = playerId
 
 		task.synchronize()
-		SendToClients(sendInformation):expect(warn)
+		helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendToClients, true, sendInformation))
 
 		-- Monitor the bullet for specific information
 		heartbeat = game:GetService("RunService").Heartbeat:ConnectParallel(function()
@@ -145,19 +141,16 @@ local function BulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTa
 			end
 		end)
 
+		onCancel(function()
+			heartbeat:Disconnect()
+		end)
+
 		resolve()
 	end)
 end
 
 function ClientBulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTagged : {string}, MoveTowards : CFrame, BulletDrop : number, DistanceTimeOut : number, Speed : number, Pierce : number, PierceDamageLoss : number, StartPosition : Vector3}, player: Player)
-	print("Create client info")
-	local success, _ = BulletCreation(info, player):await()
-
-	if success then
-		print("Created a bullet for the client!")
-	else
-		warn("Could not create a bullet for the client.")
-	end
+	helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(BulletCreation, false, info, player), false)
 end
 
 function ServerBulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTagged : {string}, MoveTowards : CFrame, BulletDrop : number, DistanceTimeOut : number, Speed : number, Pierce : number, PierceDamageLoss : number, StartPosition : Vector3})
@@ -166,7 +159,7 @@ function ServerBulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTa
 		return
 	end
 
-	BulletCreation(info):catch(warn)
+	helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(BulletCreation, false, info), false)
 end
 
 script.Parent:BindToMessage("ServerCreate", ServerBulletCreation)

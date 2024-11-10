@@ -120,8 +120,8 @@ local function SortPositionTable(positionalData : {[Instance] : Vector3}, startP
 end
 
 local function  FlyDrone(data : {{["Position"] : Vector3, ["Instance"] : Instance}})
-    local droneStartingPOsitions = workspace.DroneStartPositions:GetChildren()
-    local startingPart : Part = droneStartingPOsitions[math.random(1, #workspace.DroneStartPositions:GetChildren())]
+    local droneStartingPositions = workspace.DroneStartPositions:GetChildren()
+    local startingPart : Part = droneStartingPositions[math.random(1, #workspace.DroneStartPositions:GetChildren())]
     local startingPosition : Vector3 = startingPart.Position
 
     local positionalData = {}
@@ -185,9 +185,10 @@ local function PositionTableIndexedByInstancePathName(positionTable)
 
         if updatedPositionalTable[instancePath] ~= nil then
             warn("Duplicate entries in positionTable (PositionTableIndexedByInstancePathName). New instances of the same index are dropped.")
-        else
-            updatedPositionalTable[instancePath] = v.Position
+            continue
         end
+
+        updatedPositionalTable[instancePath] = v.Position
     end
 
     return updatedPositionalTable
@@ -219,8 +220,8 @@ local function ReportLocations(positions : {[string] : Vector3}, tag : string)
             end
     
             if locatedAtPosition == "" then
-                local relAlt, altExp = helperModule.NumberManipulation.Truncater((Vector3.new(0, position.Y, 0)-Vector3.new(0, keyInformation.Origine.Y, 0)).Magnitude, 3)
-                local relDist, distExp = helperModule.NumberManipulation.Truncater((Vector3.new(position.X, 0, position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
+                local relAlt, altExp = helperModule.NumberManipulation.Truncate((Vector3.new(0, position.Y, 0)-Vector3.new(0, keyInformation.Origine.Y, 0)).Magnitude, 3)
+                local relDist, distExp = helperModule.NumberManipulation.Truncate((Vector3.new(position.X, 0, position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
 
                 output = output .. "<br />" .. name .. " à alt. rel. : <i>" .. relAlt * 10 .. "e" .. altExp - 1
                 .. "</i> et dist. rel. : <i>" .. relDist * 10 .. "e" .. distExp - 1 .. "</i>."
@@ -271,7 +272,7 @@ local function FindPosition(tag : string) : {{["Position"] : Vector3, ["Instance
         return PositionTableIndexedByInstancePathName(positionalTable)
     end)
 
-    ReportLocations(PositionTableIndexedByInstancePathName(positionalTable), tag):finally()
+    helperModule.Promises.ExceptionHandler(helperModule.Promises.PromiseHandler(ReportLocations, false, positionalInformation, tag), false)
 
     return positionalTable
 end

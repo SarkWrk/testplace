@@ -1,227 +1,250 @@
+-- Class
 local class = {}
+
+-- Services
+local SHARED_TABLE_REGISTRY = game:GetService("SharedTableRegistry")
+local REPLICATED_STORAGE = game:GetService("ReplicatedStorage")
+local PATHFINDING_SERVICE = game:GetService("PathfindingService")
+local COLLECTION_SERVICE = game:GetService("CollectionService")
+
+-- Dependencies
+local _TYPES = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("Types"))
+local HELPER = require(REPLICATED_STORAGE:WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
+local FAST_SIGNAL = require(REPLICATED_STORAGE:WaitForChild("FastSignal"):WaitForChild("FastSignal"))
+local PROMISES = require(game:GetService("ReplicatedStorage"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+
 class.interface = {}
 class.schema = {}
-class.metatable = { __index = class.schema }
-class.schema.Setup = {}
-class.schema.Visualisation = {}
-class.schema.CustomActionHelpers = {}
+class.metatable = {__index = class.schema}
 
-local types = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("Types"))
-local positionalData = game:GetService("SharedTableRegistry"):GetSharedTable("PositionsTrackerTable")
+--[[
+Use this function to create a new AIPathfindingComponent.
+]]
+class.interface.new = function(rig : Model) : AIPathfindingComponent 
+    local self = setmetatable({}, class.metatable)
+    
+    self.___important = {
+        ___rig = rig,
+        ___state_manager_script = Instance.new("Script"),
+    }
+    self.information = self:SetUpInformation()
+    self.signals = self:SetUpSignals()
 
-function class.interface.New(
-	owner: Script,
-	rig: Model,
-	pathfindingInformation: types.PathfindingAIConfigurations,
-	combatScript: Script,
-	diedEvent: BindableEvent,
-	stateManagerScript: Script
-): BasePathfindingAI
-	local PathfindingAI = setmetatable({}, class.metatable)
-
-	PathfindingAI.ImportantInformation = {
-		["rig"] = rig,
-		["script"] = owner,
-		["shootingScript"] = combatScript,
-		["stateManagerScript"] = stateManagerScript,
-		["humanoid"] = rig:FindFirstChildOfClass("Humanoid"),
-	}
-	PathfindingAI.Information =
-		class.schema.Setup.SetupBase(PathfindingAI, pathfindingInformation.PathfindingInformation)
-	PathfindingAI.VisualisationInformation = class.schema.Setup.SetupVisualisationConfigurations(
-		rig,
-		PathfindingAI.Information.RandomNumberGenerator,
-		pathfindingInformation.VisualisationInformation
-	)
-	PathfindingAI.ShootingFunctions =
-		class.schema.Setup.SetupShootingConfigurations(pathfindingInformation.ShootingFunctions)
-	PathfindingAI.Shutoff = false
-
-	-- Sets up a listener to set the ShootingFunctions.CanSeeEnemy variable
-	PathfindingAI.ImportantInformation.script:GetAttributeChangedSignal("CanSeeEnemy"):Connect(function()
-		PathfindingAI.ShootingFunctions.CanSeeEnemy =
-			PathfindingAI.ImportantInformation.shootingScript:GetAttribute("CanSeeEnemy")
-	end)
-
-	-- Sets up a listener for RigDied, and if it fires safely shuts down the programme
-	diedEvent.Event:Connect(function()
-		PathfindingAI.Information.Died = true
-
-		PathfindingAI.CleanUp(PathfindingAI)
-	end)
-
-	-- Sets the Humanoid's movespeed and jump height
-	PathfindingAI.ImportantInformation.stateManagerScript:SetAttribute("Walkspeed", PathfindingAI.Information.PathfindingInformation.MoveSpeed)
-	PathfindingAI.ImportantInformation.humanoid.JumpPower =
-		PathfindingAI.Information.PathfindingInformation.JumpHeight
-
-	return PathfindingAI
+    return self
 end
 
-function class.schema.Setup.SetupBase(_, info)
-	local Base : {PreviousPoints : {}, Goals : {[Instance] : Vector3}, InCycle : boolean, Moving : boolean, Goal : {Part : Instance, Location : Vector3}, TrueGoal : {Part : Instance, Location : Vector3}, Died : boolean, RandomNumberGenerator : Random, PathfindingInformation : {}, CustomActionHelpers : {}}
-	Base = {
-		-- General variables
-		PreviousPoints = {}, -- Tracks unreachable goals
-		Goals = {}, -- Tracks all the potential goals
-		InCycle = false, -- Tracks if the rig is currently moving towards a goal
-		Moving = false, -- Tracks wehther the rig is currently moving
-		Goal = nil, -- Publicises the current goal trying to be reached
-		TrueGoal = nil, -- Publicses the true goal, and not the pathing to part
-		Died = false,
-		RandomNumberGenerator = Random.new(), -- Used to generate random numbers
-	
-		-- Table to store all variables used for pathfinding
-		PathfindingInformation = class.schema.Setup.SetupPathfindingInformation(info),
-	
-		-- Table to contain all the functions used for PathfindingLinks
-		CustomActionHelpers = {},
-	}
+--[[
+Sets up the signals used in this class.
+]]
+function class.schema:SetUpSignals()
+    --[[
+    Contain the signals that will be fired by this component.
 
-	return Base
+    Note: Changed is a global variable that will fire whenever something notable (except when Destroying fires) changes.
+    ]]
+    local signals = {}
+
+    signals.___Changed = FAST_SIGNAL.new()
+    signals.___Destroying = FAST_SIGNAL.new()
+    signals.___StartedMoving = FAST_SIGNAL.new()
+    signals.___StoppedMoving = FAST_SIGNAL.new()
+    signals.___CustomWaypointActions = FAST_SIGNAL.new()
+
+    return signals
 end
 
-function class.schema.Setup.SetupPathfindingInformation(info: {
-	Goals: {},
-	AgentRadius: number,
-	AgentHeight: number,
-	WaypointSpacing: number,
-	LabelCosts: {},
-	JumpHeight: number,
-	MoveSpeed: number,
-	BannedFolders: { Instance },
-	SkipClosestChance: number,
-	RecheckPossibleTargets: number,
-	FailureInformation: { ExhaustTime: number, RecalculatePath: boolean, ForcePathfinding: boolean },
-})
-	local PathfindingInformation = {}
+--[[
+Sets up underlying information required for the class to run. Values with the prefix '___' should not be touched.
+]]
+function class.schema:SetUpInformation()
+    --[[
+    Contains various variables and subtables used for the tasks that this component does.
+    ]]
+    local information = {
+        -- Variables that shouldn't be modified
+        ___stop_pathfinding = false,
 
-	-- Table used for the tags that the rig will pathfind to
-	PathfindingInformation.Goals = info.Goals
+        -- Modifiable variables
+        RANDOM = Random.new()
+    }
 
-	-- Variables used for the AgentParameters argument when creating a path via PathfindingService:ComputeAsync()
-	PathfindingInformation.AgentRadius = info.AgentRadius
-	PathfindingInformation.AgentHeight = info.AgentHeight
-	PathfindingInformation.WaypointSpacing = info.WaypointSpacing
-	PathfindingInformation.LabelCosts = info.LabelCosts --[[Material names and pathfinding modifier/pathfinding link labels
-																  can be put here to adjust their respective costs to travel on]]
+    --[[
+    Contains the potential tags that the component will take into consideration when pathfinding.
+    ]]
+    information.targettags = {
+        "Goal"
+    }
 
-	-- Variables used for controlling the rig's movement
-	PathfindingInformation.JumpHeight = info.JumpHeight -- Uses Humanoid.JumpPower
-	PathfindingInformation.MoveSpeed = info.MoveSpeed -- In studs/sec
+    --[[
+    DO NOT TOUCH!
 
-	-- Table used for controlling if the rig should recalculate the path due to it being blocked by a ancestor of an object in the table
-	PathfindingInformation.BannedFolders = info.BannedFolders
+    Contains information about the current target, positions of every possible target, and the SharedTable used to find the positions of targets.
+    ]]
+    information.___targetinformation = {
+        ___positions = {},
+        ___target = nil,
+        ___shared_table = SHARED_TABLE_REGISTRY:GetSharedTable("PositionsTrackerTable")}
 
-	-- Variable used for the chance that the rig will skip pathing the nearest goal
-	PathfindingInformation.SkipClosestChance = info.SkipClosestChance -- Calculated value is (this)/100 (required to be positive and <= 100)
+    --[[
+    Contains information used when pathfinding.
+    ]]
+    information.pathfindinginformation = {
+        -- Variables that shouldn't be modified
+        ___path = nil
 
-	PathfindingInformation.ForcedPart = nil -- A variable to store a part to force the programme to pathfind to
-	PathfindingInformation.RecheckPossibleTargets = info.RecheckPossibleTargets -- In seconds, if the rig runs out of targets it will halt pathfinding for this long and then try again
+        -- Modifiable variables
+    }
 
-	-- Table used to store variables for if the rig fails to reach the next checkpoint
-	PathfindingInformation.FailureInformation = info.FailureInformation
+    --[[
+    Contains information used when creating a Path using PathfindingService:CreatePath().
+    ]]
+    information.pathfindinginformation.settings = {
+        --Modifiable variables
+        AGENT_RADIUS = 2,
+        AGENT_HEIGHT = 5,
+        WAYPOINT_SPACING = 1,
+        COSTS = {}
+    }
 
-	-- Variables used for what to do if the rig never reaches the next Waypoint
-	--PathfindingInformation.FailureInformation.ExhaustTime = 5 -- Time is adjusted by distance in studs, at 1 stud away it's x, 2 it's 2x, 0.5 is 0.5x, etc
-	--PathfindingInformation.FailureInformation.RecalculatePath = true -- If the programme should calculate a new path on exhaust timeout
-	--PathfindingInformation.FailureInformation.ForcePathfinding = true -- Whether to force the programme to pathfind to a part
+    --[[
+    Contains information used during pathfinding on what to do in combat situations.
+    ]]
+    information.pathfindinginformation.combatsettings = {
+        -- Variables that shouldn't be modified
 
-	return PathfindingInformation
+        -- Modifiable varibles
+        SHOULD_STOP_ON_ENEMY_SIGHT = true,
+        MOVESPEED_REDUCTION_ON_ENEMY_SIGHT = 8,
+        GRENADE_AVOIDANCE_RADIUS = 40,
+    }
+
+    --[[
+    Contains information used when visualising things from this component.
+    ]]
+    information.visualisationinformation = {
+        -- Variables that shouldn't be modified
+        ___visualisation_folder = nil,
+        ___visualisation_folder_name = self.___important.___rig:GetFullName(),
+
+        -- Modifiable variables
+        VISUALISE_PATH = true,
+        VISUALISATION_SPACING = 1,
+        NORMAL_NODE_SIZE = 1,
+        JUMP_NODE_SIZE_MULTIPLIER = 2,
+        CUSTOM_NODE_SIZE_MULTIPLIER = 4,
+    }
+
+    --[[
+    Contains used information about AICombatComponent.
+    ]]
+    information.combatinformation = {
+        -- Variables that shouldn't be modified
+        ___spotted_enemy = false
+
+        -- Modifiable variables
+    }
+
+    return information
 end
 
-function class.schema.Setup.SetupVisualisationConfigurations(
-	rig,
-	RandomNumberGenerator,
-	info: {
-		VisualisePath: boolean,
-		VisualisationSpacing: number,
-		NormalNodeSize: number,
-		JumpNodeSizeMultiplier: number,
-		CustomNodeSizeMultiplier: number,
-		VisualiseChoosing: boolean,
-		ShowChoosingCircle: boolean,
-		ChoosingCircleExpansionDelay: number,
-		HeightAppearenceWaitTime: number,
-	}
-)
-	-- A table to contain extra variables and functions related to visualising the main programme
-	local VisualisationInformation = {}
+--[[
+This function cleans up the component to be able to be GC'd. Any connections to ___Destroying and ___Changed are given 2 seconds before being disconnected.
 
-	-- Variable used to help show what goal the rig is currently pathing to
-	if rig:FindFirstChild("BillboardGui") then
-		VisualisationInformation.BillboardTextLabel = rig.BillboardGui -- Attemps to find a BillboardGUI parented to rig to display info on
-	else
-		VisualisationInformation.BillboardTextLabel = nil -- Could not find the BillboardGUI
-	end
+When called will:
+1. Fire the ___Destroying event.
+2. Set class.information.___stop_pathfinding to true.
+3. Destroy, (if applicable) self.information.visualisationinformation.___visualisation_folder and self.information.pathfindinginformation.___path,
+4. Disconnect all signals bar ___Changed and ___Destroying.
+5. Wait 2 seconds since :Destroy() was called.
+6. Remove all references to class.information and class.___important.
+7. Disconnect ___Changed and ___Destroying.
+8. Remove all references to class.signals.
+]]
+function class.schema.Destroy(self : AIPathfindingComponent)
+    self.signals.___Destroying:Fire()
 
-	-- Variables used for the VisualisationInformation:PathVisualiser() function
-	VisualisationInformation.VisualisePath = info.VisualisePath -- Whether to enable this visualisation
-	VisualisationInformation.VisualisationSpacing = info.VisualisationSpacing -- How far to space each visualised point (must be >= main.PathfindingInformation.WaypointSpacing)
-	VisualisationInformation.FolderToSavePathVisualiserName = "Visualiser" .. RandomNumberGenerator:NextNumber(1, 1000) -- Creates a name for the visualisation folder
-	VisualisationInformation.PathVisualiserFolder = nil -- Stores the folder when created
-	VisualisationInformation.NormalNodeSize = info.NormalNodeSize -- The size of the visualised node (given as a Vector3.new(x,x,x))
-	VisualisationInformation.JumpNodeSizeMultiplier = info.JumpNodeSizeMultiplier -- The size given of the visualised node with each value being the normal node size multiplied by x
-	VisualisationInformation.CustomNodeSizeMultipler = info.CustomNodeSizeMultiplier -- The size given of the visualised node with each value being the normal node size multiplied by x
+    local destroyStartTime = tick()
 
-	-- Variables used for the main.PathfindingInformation:ChosenVisualiser() function
-	VisualisationInformation.VisualiseChoosing = info.VisualiseChoosing -- Whether to enable this visualisation
-	VisualisationInformation.ShowChoosingCircle = info.ShowChoosingCircle -- Whether to show the distance circle, WILL NOT RUN IF VisualiseChoosing IS FALSE
-	VisualisationInformation.ChoosingCircleExpansionDelay = info.ChoosingCircleExpansionDelay -- How long the programme waits between expanding the circle
-	VisualisationInformation.HighlightAppearenceWaitTime = info.HeightAppearenceWaitTime -- How long the programme waits after reaching the chosen goal
+    self.information.___stop_pathfinding = true
 
-	return VisualisationInformation
+    local function DestroyObjects()
+        if self.information.visualisationinformation.___visualisation_folder ~= nil then
+            self.information.visualisationinformation.___visualisation_folder:Destroy()
+        end
+    
+        if self.information.pathfindinginformation.___path then
+            self.information.pathfindinginformation.___path:DEstroy()
+        end
+    
+        self.information.RANDOM = nil
+    end
+
+    local function RemoveSignals()
+        for signal_name, signal in pairs(self.signals) do
+            if signal_name == "___Destroying" then
+                continue
+            end
+    
+            if signal_name == "___Changed" then
+                continue
+            end
+    
+            signal:Destroy()
+        end
+    end
+
+    local function RemoveReferences()
+        self.information.___targetinformation = nil
+        self.___important = nil
+        self.information.RANDOM = nil
+    end
+
+    DestroyObjects()
+
+    RemoveSignals()
+
+    while tick()-destroyStartTime < 2 do
+        task.wait()
+    end
+
+    RemoveReferences()
+
+    self.signals.___Changed:Destroy()
+    self.signals.___Destroying:Destroy()
+
+    self.signals = nil
 end
 
-function class.schema.Setup.SetupShootingConfigurations(info: {
-	ShouldHaltOnSeenenemy: boolean,
-	WalkspeedReduction: number,
-	GrenadeAvoidanceRange: number,
-})
-	-- Sets up a table to store shootingScript functionality
-	local ShootingFunctions = {}
-
-	-- Sets up some variables used for the functions in the table
-	ShootingFunctions.CanSeeEnemy = false -- Used in ShootingFunctions:Halt()
-	ShootingFunctions.ShouldHaltOnSeenEnemy = info.ShouldHaltOnSeenenemy -- Whether the programme should halt when seeing an enemy
-	ShootingFunctions.WalkspeedReduction = info.WalkspeedReduction -- How much to reduce walkspeed by if an enemy can be seen
-	ShootingFunctions.ReducedWalkspeed = false -- A check to see whether the walkspeed has been reduced due to seeing an enemy
-	ShootingFunctions.GrenadeAvoidanceRange = info.GrenadeAvoidanceRange -- How close a grenade needs to be to the AI for the AI to avoid the grenade
-
-	return ShootingFunctions
-end
-
--- Function used to visualise the path the rig takes to get to a goal
-function class.schema.Visualisation.PathVisualiser(
-	self: BasePathfindingAI,
-	waypoints: {}
-): nil -- Returns nothing, requires the waypoints that are going to be plotted (as a table)
+--[[
+Function used to visualise the path the rig takes to get to a goal
+]]
+function class.schema.PathVisualiser(self: AIPathfindingComponent, waypoints: {})
 	-- Tries to find if a folder to store all the paths has already been made. If it hasn't, then it creates the folder
-	local foundFolder = self.VisualisationInformation.PathVisualiserFolder
+	local foundFolder = self.information.visualisationinformation.___visualisation_folder
 	if foundFolder then
 		foundFolder:ClearAllChildren() -- Clears all previous nodes in the folder
 	else
 		-- Creates a new folder with the name "PathVisualiser" and parents it to the workspace
 		foundFolder = Instance.new("Folder")
-		foundFolder.Name = self.VisualisationInformation.FolderToSavePathVisualiserName
+		foundFolder.Name = self.information.visualisationinformation.___visualisation_folder_name
 		foundFolder.Parent = workspace
-		self.VisualisationInformation.PathVisualiserFolder = foundFolder
+		self.information.visualisationinformation.___visualisation_folder = foundFolder
 	end
 
 	-- Checks if the visualisation node spacing is less than the agent waypoint spacing, and if so sets the visualisation node spacing to the agent's
-	if self.VisualisationInformation.VisualisationSpacing < self.Information.PathfindingInformation.WaypointSpacing then
+	if self.information.visualisationinformation.VISUALISATION_SPACING < self.information.pathfindinginformation.settings.WAYPOINT_SPACING then
 		print(
-			"Setting VisualisationInformation.VisualisationSpacing to "
-				.. self.Information.PathfindingInformation.WaypointSpacing
+			"Setting visualisationinformation.VISUALISATION_SPACING to "
+				.. self.information.pathfindinginformation.settings.WAYPOINT_SPACING
 				.. " (Previously: "
-				.. self.VisualisationInformation.VisualisationSpacing
+				.. self.information.visualisationinformation.VISUALISATION_SPACING
 				.. ")"
 		)
-		self.VisualisationInformation.VisualisationSpacing = self.Information.PathfindingInformation.WaypointSpacing
+		self.information.visualisationinformation.VISUALISATION_SPACING = self.information.pathfindinginformation.settings.WAYPOINT_SPACING
 	end
 
-	local spacer = self.VisualisationInformation.VisualisationSpacing
-		/ self.Information.PathfindingInformation.WaypointSpacing --[[ Calculates
+	local spacer = self.information.visualisationinformation.VISUALISATION_SPACING
+		/ self.information.pathfindinginformation.settings.WAYPOINT_SPACING --[[ Calculates
 	how often to create a visualised node]]
 	local counter = 0 -- Keeps track of when to place a node
 
@@ -231,24 +254,24 @@ function class.schema.Visualisation.PathVisualiser(
 		local waypoint = Instance.new("Part")
 		counter += 1 -- Increments the counter
 
-		-- Jump actions are never skipped, have VisualisationInformation.JumpNodeSizeMultiplier the size of a normal node, and are given a GREEN colour
+		-- Jump actions are never skipped, have visualisationinformation.JUMP_NODE_SIZE_MULTIPLIER the size of a normal node, and are given a GREEN colour
 		if v.Action == Enum.PathWaypointAction.Jump then
 			counter = 0 -- Resets the counter
-			waypoint.Color = Color3.new(0.333333, 1, 0) -- Sets the colour
+			waypoint.Color = Color3.new(0.278431, 0.674510, 0.082353) -- Sets the colour
 			waypoint.Size = Vector3.new(
-				self.VisualisationInformation.NormalNodeSize * self.VisualisationInformation.JumpNodeSizeMultiplier,
-				self.VisualisationInformation.NormalNodeSize * self.VisualisationInformation.JumpNodeSizeMultiplier,
-				self.VisualisationInformation.NormalNodeSize * self.VisualisationInformation.JumpNodeSizeMultiplier
+				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.JUMP_NODE_SIZE_MULTIPLIER,
+				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.JUMP_NODE_SIZE_MULTIPLIER,
+				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.JUMP_NODE_SIZE_MULTIPLIER
 			)
 
-			-- Custom actions are never skipped, have VisualisationInformation.CustomNodeSizeMultipler the size of a normal node, and are given a PINK-ISH-WHITE colour
+			-- Custom actions are never skipped, have visualisationinformation.CUSTOM_NODE_SIZE_MULTIPLIER the size of a normal node, and are given a PINK-ISH-WHITE colour
 		elseif v.Action == Enum.PathWaypointAction.Custom then
 			counter = 0 -- Resets the counter
-			waypoint.Color = Color3.new(1, 0.666667, 1) -- Sets the colour
+			waypoint.Color = Color3.new(1.000000, 0.537255, 1.000000) -- Sets the colour
 			waypoint.Size = Vector3.new(
-				self.VisualisationInformation.NormalNodeSize * self.VisualisationInformation.CustomNodeSizeMultipler,
-				self.VisualisationInformation.NormalNodeSize * self.VisualisationInformation.CustomNodeSizeMultipler,
-				self.VisualisationInformation.NormalNodeSize * self.VisualisationInformation.CustomNodeSizeMultipler
+				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.CUSTOM_NODE_SIZE_MULTIPLIER,
+				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.CUSTOM_NODE_SIZE_MULTIPLIER,
+				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.CUSTOM_NODE_SIZE_MULTIPLIER
 			)
 
 			-- Walk actions can be skipped, and are given an ORANGE colour
@@ -257,7 +280,7 @@ function class.schema.Visualisation.PathVisualiser(
 				continue
 			end
 
-			waypoint.Color = Color3.new(1, 0.666667, 0) -- Sets the colour
+			waypoint.Color = Color3.new(0.639216, 0.454902, 0.086275) -- Sets the colour
 			waypoint.Size = Vector3.new(0.5, 0.5, 0.5) -- Sets the size of the node to be 0.5 studes X 0.5 studs X 0.5 studs
 		end
 
@@ -272,804 +295,606 @@ function class.schema.Visualisation.PathVisualiser(
 		waypoint:AddTag("Visualiser")
 		waypoint.Parent = foundFolder -- Parents the node to the folder
 	end
-
-	return nil
-end
-
--- Function used to visualise the choosing process of the programme
-function class.schema.Visualisation.ChoosenVisualiser(self: BasePathfindingAI, chosenPart: Part): nil
-	-- Tries to find if a folder to store all the paths has already been made. If it hasn't, then it creates the folder
-	local foundFolder = self.VisualisationInformation.PathVisualiserFolder
-	if foundFolder then
-		foundFolder:ClearAllChildren() -- Clears all previous nodes in the folder
-	else
-		-- Creates a new folder with the name "PathVisualiser" and parents it to the workspace
-		foundFolder = Instance.new("Folder")
-		foundFolder.Name = self.VisualisationInformation.FolderToSavePathVisualiserName
-		foundFolder.Parent = workspace
-		self.VisualisationInformation.PathVisualiserFolder = foundFolder
-	end
-
-	local highlights = {} -- Table used to store the highlights generated by the programme
-
-	--[[
-	If VisualisationInformation.ShowChoosingCircle is true (skip if not):
-	1) Create a circle that expands outwards
-	2) Whenever a goal enters the circle, give it a highlight
-	2.a) If the goal is the chosen goal, give it a green highlight
-	2.b) If the goal is the previous goal, give it a cyan highlight
-	2.c) Otherwise, give it a red highlight
-	3) Once the goal has been reached, the circle changes colour
-	4) Destroy the circle after 0.1s
-	]]
-
-	if self.VisualisationInformation.ShowChoosingCircle == true then
-		-- Creates the first values of the circle
-		local circle = Instance.new("Part") -- Creates a new part
-		circle.Shape = Enum.PartType.Cylinder -- Makes it a cylinder shape
-		circle.Size = Vector3.new(0.5, 10, 10) -- Sets the size to 0.5 studs X 10 studs X 10 studs (to make it a circle)
-		circle.CFrame = CFrame.new(self.ImportantInformation.rig.UpperTorso.Position)
-			* CFrame.Angles(0, 0, math.rad(90)) -- Positions and orients the circle
-		circle.Material = "Neon" -- Sets the material to Neon to make it more visible
-		circle.Color = Color3.new(1, 1, 0.498039) -- Changes the colour to a light yellow
-		circle.Anchored = true -- Sets the anchored property to true
-		circle.CanCollide = false -- Sets the CanCollide property to false
-		circle.Locked = true -- Makes the circle unable to be selected in studio
-		circle.Transparency = 0.5 -- Makes the circle half transparent
-		circle:AddTag("Visualiser")
-		circle.Parent = foundFolder -- Parents the circle to the workspace
-
-		-- Variables used in the following while loop, read more:
-		local incrementer = 0 -- Used to facilitate the expansion of the circle
-		local reachedChosenPart = false -- Used to indicate if the circle has reached the chosen goal, and if so to stop expanding the circle
-
-		-- Loops forever until the chosen goal has been reached, higlighting passed goals on the way
-		while task.wait(self.VisualisationInformation.ChoosingCircleExpansionDelay) do
-			incrementer += 2 -- Increases the radius of the circle by 2
-			circle.Size = Vector3.new(0.5, 10 + incrementer, 10 + incrementer) -- Increases the size by the incrementer
-
-			-- Loops through each goal to check whether it's in the circle, and if so then highlights it
-			for _, v: Model | Part in pairs(workspace.Goals:GetChildren()) do
-				local insidePart = nil
-
-				-- Gets the part that should be focused on for the stuffs
-				if v:IsA("Model") then
-					insidePart = v.PrimaryPart
-				elseif v.ClassName == "Part" then
-					insidePart = v
-				end
-
-				local distance = (Vector3.new(
-					self.ImportantInformation.rig.LowerTorso.Position.X,
-					self.ImportantInformation.rig.LeftFoot.Position.Y,
-					self.ImportantInformation.rig.LowerTorso.Position.Z
-				) - insidePart.Position).Magnitude -- Calculates the how far the goal is from the circle centre
-
-				if distance <= circle.Size.Y / 2 then -- Checks if the goal is inside the circle's covered area
-					if highlights[v.Name] == nil then -- Checks if the goal has already been highlighted before
-						-- Highlights the goal based on if the goal is the chosen goal
-						local highlight = Instance.new("Highlight") -- Creates the highlight
-						highlight.Parent = v -- Sets the parent of the highlight to the goal
-
-						if v == self.Information.TrueGoal then -- Checks whether the highlight is the goal
-							highlight.FillColor = Color3.new(0, 1, 0) -- If so, sets the highlight colour to green
-							reachedChosenPart = true -- Sets the reachedChosenPart flag to true
-							circle.Color = Color3.new(0.333333, 0.333333, 1) -- Changes the circle's colour to purple
-						elseif v == self.Information.PreviousPoints[1] then -- Checks whether the highlight is the previous goal
-							highlight.FillColor = Color3.new(0.333333, 1, 1) -- If so, sets the highlight colour to green
-						end
-
-						highlights[v.Name] = highlight -- Adds the highlight to the highlight table
-					end
-				end
-			end
-
-			-- If the chosen goal has been reached, exit the while loop
-			if reachedChosenPart == true then
-				break
-			end
-		end
-
-		task.wait(0.1) -- Halts the programme for 0.1s
-
-		circle:Destroy() -- Destroys the circle
-	else
-		-- If VisualisationInformation.ShowChoosingCircle is false, creates a highlight and colours it based on if the goal is the chosen goal
-
-		-- Loops through each goal and creates a highlight for each one
-		for _, v: Part in pairs(workspace.Goals:GetChildren()) do
-			local highlight = Instance.new("Highlight") -- Creates a highlight
-			highlight.Parent = v -- Parents it to the goal
-
-			if v == self.Information.TrueGoal then -- Checks if it's the chosen goal
-				highlight.FillColor = Color3.new(0, 1, 0) -- If it is sets its colour to green
-			elseif v == self.Information.PreviousPoints[1] then -- Checks whether the highlight is the previous goal
-				highlight.FillColor = Color3.new(0.333333, 1, 1) -- If so, sets the highlight colour to green
-			end
-
-			highlights[v.Name] = highlight -- Adds the highlight to the highlight table
-		end
-	end
-
-	-- Creates a cylinder that shows the obvious connection between the rig and chosen part, ignoring any obstacles
-
-	local distance = (self.ImportantInformation.rig.UpperTorso.Position - chosenPart.Position).Magnitude -- Calculates the distance the goal is from the rig
-
-	local connector = Instance.new("Part") -- Creates a new part
-	connector.Shape = Enum.PartType.Cylinder -- Sets its shape to be a cylinder
-	connector.Size = Vector3.new(distance, 2, 2) -- Sets its size to he distance studs X 2 studs X 2 studs (long with a radius of 1)
-	connector.Material = "Neon" -- Sets its material to Neon to be more visible
-	connector.Color = Color3.new(0, 0.333333, 0) -- Sets its colour to be a dark green
-	local storedPosition = Vector3.new(
-		(chosenPart.Position.X + self.ImportantInformation.rig.UpperTorso.Position.X) / 2,
-		(chosenPart.Position.Y + self.ImportantInformation.rig.UpperTorso.Position.Y) / 2,
-		(chosenPart.Position.Z + self.ImportantInformation.rig.UpperTorso.Position.Z) / 2
-	) --[[
-	^^ Calulcates the midpoint between the rig and goal using a 3D midpoint formula]]
-	connector.CFrame = CFrame.lookAt(storedPosition, self.ImportantInformation.rig.UpperTorso.Position)
-		* CFrame.Angles(0, math.rad(90), 0) --[[ Creates a CFrame with the midpoint, and an adjusting angle to align
-	it correctly]]
-	connector.CanCollide = false -- Sets the CanCollide property to false
-	connector.Anchored = true -- Sets the Anchored property to true
-	connector.Locked = true -- Sets the part to be unselectable
-	connector.Transparency = 0.5 -- Sets the part's transparency to half
-	connector:AddTag("Visualiser")
-	connector.Parent = foundFolder -- Parents it to the workspace
-
-	task.wait(self.VisualisationInformation.HighlightAppearenceWaitTime) -- Halts the programme for an amount of time
-
-	-- Destroys the highlights and cylinder
-	for _, v in pairs(highlights) do
-		v:Destroy()
-	end
-	connector:Destroy()
-
-	return nil
-end
-
--- Function used to halt the programme due to the shootingScript
-function class.schema.Halt(self: BasePathfindingAI): nil
-	if self.ShootingFunctions.CanSeeEnemy == true then
-		if self.ShootingFunctions.ShouldHaltOnSeenEnemy == false then
-			if self.ShootingFunctions.ReducedWalkspeed == false then
-				self.ShootingFunctions.ReducedWalkspeed = true
-				self.ImportantInformation.stateManagerScript:SetAttribute(
-					"Walkspeed",
-					self.ImportantInformation.stateManagerScript:GetAttribute("Walkspeed")
-						- self.ShootingFunctions.WalkspeedReduction
-				)
-			end
-		else
-			while self.ShootingFunctions.CanSeeEnemy == true do
-				if self.Information.Died == true then
-					break
-				end
-
-				self.AvoidGrenade(self)
-
-				task.wait()
-			end
-		end
-	else
-		if self.ShootingFunctions.ReducedWalkspeed == true then
-			self.ShootingFunctions.ReducedWalkspeed = false
-			self.ImportantInformation.stateManagerScript:SetAttribute(
-				"Walkspeed",
-				self.ImportantInformation.stateManagerScript:GetAttribute("Walkspeed")
-					+ self.ShootingFunctions.WalkspeedReduction
-			)
-		end
-	end
-
-	return nil
-end
-
--- Function used by the programme to calculate and return a chosen goal
-function class.schema.ChoosePoint(self: BasePathfindingAI): {Part : Instance, Location : Vector3}?
-	table.clear(self.Information.Goals) -- Resets main.Goals
-
-	local valuesInDictionary = 0
-
-	-- Puts all the goals into main.Goals
-	for _, tag : string in pairs(self.Information.PathfindingInformation.Goals) do
-		local list : SharedTable = positionalData[tag]
-
-		if list == nil then
-			continue
-		end
-
-		for path : string, goal : Vector3 in list["PositionalData"] do
-			local part = workspace
-			local splitString = path:split(".")
-			for h, j in pairs(splitString) do
-				if h == 1 then
-					continue
-				end
-				
-				local s : boolean, e : string = pcall(function()
-					part = part[j]
-				end)
-				if not s then
-					part = nil
-					if not string.match(e, "is not a valid member of Folder") then
-						warn("Could not index '" .. path .. "' for pathfinding. Error: " .. e)
-					end
-				end
-			end
-			if part ~= nil then
-				valuesInDictionary += 1
-				self.Information.Goals[part] = goal
-			end
-		end
-	end
-
-	local goals = table.clone(self.Information.Goals) -- Creates a clone of main.Goals
-
-	self.Information.RandomNumberGenerator:Shuffle(goals) -- Shuffles the goals table, for randomness
-
-	-- Loops through main.PreviousPoints to remove the previous goal and any unreachable goals from the goals table
-	for part, _ in pairs(self.Information.PreviousPoints) do
-		if goals[part] then
-			table.remove(goals, part)
-			valuesInDictionary -= 1
-		end
-	end
-
-	-- Throws an error if there are no more goals after the previous operation
-	if valuesInDictionary == 0 then
-		warn(script:GetFullName() .. " ran out of pathfinding options.")
-		task.wait(self.Information.PathfindingInformation.RecheckPossibleTargets)
-
-		return nil
-	end
-
-	--[[
-		1) Loops through each goal
-		2) Calculates the how far each goal is from the rig
-		3) Checks if the distance is closer than the closest distance
-		3.a) If there is no chosen goal, sets the goal to the goal associated with the distance
-		3.b.a.i) If there is already a chosen goal, and the distance is farther than the closest goal, skip the rest of 3.b
-		3.b.a.ii) If the chosen goal is farther than the current goal, sets the chosen goal to the current goal
-		3.b.b.i) If there is already a chosen goal, and the distance is closer than the current goal, rolls a random number to see if the number is <= main.PathfindingInformation.SkipClosestchance
-		3.b.b.ii) If the number is larger than the value, skip the rest of 3.b
-		3.b.b.iii) If the number is <=, then set the closest goal to be the current goal
-	]]
-
-	local chosenGoal: { Location: Vector3, Part: Instance } = nil -- Initialises the chosenGoal variable
-	local closestDistance: number = math.huge -- Sets the closest goal to be math.huge (int.max) distance away
-
-	if self.Information.PathfindingInformation.ForcedPart == nil then
-		-- Loops through the goals table and follows the rules in the summary above
-		for part : Instance, position : Vector3 in pairs(goals) do
-			local distance = (self.ImportantInformation.rig.Head.Position - position).Magnitude -- Calculates the distance
-			if chosenGoal == nil then -- Checks whether there's a chosen goal
-				closestDistance = distance -- If not, sets the closest distance to the distance
-				chosenGoal = {Part = part, Location = position} -- Sets the chosen goal to be the goal
-			else
-				if distance < closestDistance then -- Checks whether the distance is closer than the closest distance
-					closestDistance = distance -- Sets the closest distance to the distance
-					chosenGoal = {Part = part, Location = position} -- Sets the chosen goal to the goal
-				else
-					if self.Information.PathfindingInformation.SkipClosestChance == 0 then -- Checks if it's possible to have a closest distance farther than the closest goal
-						-- If not, then skips the rest of the codeblock
-						continue
-					else
-						local randomNumber = self.Information.RandomNumberGenerator:NextNumber(1, 100) -- Rolls a random number between 1 and 100
-						if randomNumber <= self.Information.PathfindingInformation.SkipClosestChance then -- Checks whether the random number is <= the skip chance
-							closestDistance = distance -- If it is, set the closest distance to the distance
-							chosenGoal = {Part = part, Location = position} -- Set the chosen goal to the current goal
-						end
-					end
-				end
-			end
-		end
-
-		self.Information.TrueGoal = chosenGoal -- Sets main.TrueGoal to the actualGoal
-		table.insert(self.Information.PreviousPoints, self.Information.TrueGoal.Part) -- Inserts the main.TrueGoal into the main.PreviousPoints table
-	else
-		chosenGoal = self.Information.PathfindingInformation.ForcedPart
-		self.Information.PathfindingInformation.ForcedPart = nil
-	end
-
-	-- If VisualisationInformation.VisualiseChoosing is true, visualises the choosing process
-	if self.VisualisationInformation.VisualiseChoosing == true then
-		self.Visualisation.ChoosenVisualiser(self, chosenGoal)
-	end
-
-	-- Sets the main.Goal to be the chosen goal
-	self.Information.Goal = chosenGoal
-
-	-- Returns the chosen goal
-	return chosenGoal
 end
 
 --[[
-Function used by the programme to create a path and try to calculate the waypoints to get to the goal
-If the goal is reachable, returns to the waypoints in a table format
-If the goal is unreachable, returns an empty table
+Contains various functions that can be used in combat situations.
+The functions require a pre-set 'fromFunction-want' pairing to work.
+This function always returns void.
+Warns if a specific 'fromFunction-want' pairing has not been created.
+
+fromFunction : The function calling ___CombatHandler.
+
+want : The function that should be ran by ___CombatHandler.
 ]]
-function class.schema.GetPathfindingWaypoints(self: BasePathfindingAI): {}
-	local goal : {Part : Instance, Location : Vector3}? = self.ChoosePoint(self) -- Gets the goal by calling on the main:ChoosePoint() function
+function class.schema.___CombatHandler(self : AIPathfindingComponent, fromFunction : "Move"|"CombatHandler", want : "Halt"|"Grenade")
+    local function Halt()
+        if self.information.combatinformation.___spotted_enemy == false then
+            return
+        end
 
-	-- Null checking, so that the rig doesn't try to path to nil
-	if goal == nil then
-		return {}
-	end
+        local reducedSpeed = false
 
-	local pathfindingService = game:GetService("PathfindingService") -- Gets the PathfindingService
-	local path: Path = pathfindingService:CreatePath({
-		AgentHeight = self.Information.PathfindingInformation.AgentHeight,
-		AgentRadius = self.Information.PathfindingInformation.AgentRadius,
-		WaypointSpacing = self.Information.PathfindingInformation.WaypointSpacing,
-		Costs = self.Information.PathfindingInformation.LabelCosts,
-	}) --[[
-		^^ Creates the path using the main.PathfindingInformation variables]]
+        if self.information.pathfindinginformation.combatsettings.SHOULD_STOP_ON_ENEMY_SIGHT == false then
+            reducedSpeed = true
+            self.___important.___state_manager_script:SetAttribute("Walkspeed", self.___important.___state_manager_script:GetAttribute("Walkspeed") - self.information.pathfindinginformation.combatsettings.MOVESPEED_REDUCTION_ON_ENEMY_SIGHT)
+        end
 
-	-- Calculates the path in a protected call
-	local success, no = pcall(function()
-		path:ComputeAsync(
-			Vector3.new(
-				self.ImportantInformation.rig.LowerTorso.Position.X,
-				self.ImportantInformation.rig.LeftFoot.Position.Y,
-				self.ImportantInformation.rig.LowerTorso.Position.Z
-			),
-			goal.Location
-		)
-	end)
+        while self.information.combatinformation.___spotted_enemy == true do
+            self:___CombatHandler("CombatHandler", "Grenade")
+            task.wait()
+        end
 
-	-- If the protected calculation fails, warns the error and returns an empty table
-	if success == false then
-		warn("Path could not be computed. Error: " .. no)
-		return {}
-	end
+        if reducedSpeed == true then
+            self.___important.___state_manager_script:SetAttribute("Walkspeed", self.___important.___state_manager_script:GetAttribute("Walkspeed") + self.information.pathfindinginformation.combatsettings.MOVESPEED_REDUCTION_ON_ENEMY_SIGHT)
+        end
+    end
 
-	-- If the path is created successfully, sets main.PreviousPoints to a table with only the goal in it and returns the waypoints in a table
-	if path.Status == Enum.PathStatus.Success then
-		self.Information.PreviousPoints = { goal }
+    --[[
+    Checks if there're any greandes nearby, and if so tries to avoid them.
+    ]]
+    local function AvoidGrenade(override : Part?)
+        local grenadeToBeAvoided = override
 
-		return path:GetWaypoints()
-	else
-		-- If the path isn't sucessfully created, warns relevant information, halts the programme for 0.5s, and returns an empty table
-		--warn("Path status : " .. path.Status.Name .. " | Goal: " .. goal:GetFullName() .. " | Warning : ", no)
-		task.wait(0.5)
-		return {}
-	end
-end
+        if grenadeToBeAvoided == nil then
+            local grenades = COLLECTION_SERVICE:GetTagged("Grenade")
 
--- Function used to check if a waypoint is still accessible. returns false if it's not and true if it is
-function class.schema.CheckWaypointValidity(self: BasePathfindingAI, position: Vector3): boolean
-	-- Creates an OverlapParams that only includes objects inside main.PathfindingInformation.BannedFolers, respecting CanCollide
-	local dontAllowList = OverlapParams.new()
-	dontAllowList.FilterType = Enum.RaycastFilterType.Include
-	dontAllowList.FilterDescendantsInstances = self.Information.PathfindingInformation.BannedFolders
-	dontAllowList.RespectCanCollide = true
+            -- Check if there are any grenades
+            if table.maxn(grenades) == 0 then
+                return
+            end
 
-	-- Creates a part the size of the rig
-	local makeshiftPart = Instance.new("Part")
-	makeshiftPart.Size = Vector3.new(2, 5, 4)
-	makeshiftPart.CFrame = self.ImportantInformation.rig.UpperTorso.CFrame
-	makeshiftPart.Position = position
+            local nearbyGrenades = {}
 
-	-- Casts using game.Workspace:GetPartsInPart() to see if any banned objects are inside the part
-	local cast = game.Workspace:GetPartsInPart(makeshiftPart, dontAllowList)
+            for _, grenade : Part in pairs(grenades) do
+                if grenade:GetAttribute("Exploding") ~= true then
+                    continue
+                end
 
-	-- Returns true if there are any, and therefore the path is blocked
-	if table.maxn(cast) > 0 then
-		return false
-	end
+                if HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, grenade.Position) > self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS then
+                    continue
+                end
 
-	-- Returns false if there aren't any, and therefore not blocked
-	return true
-end
+                local rigHead : BasePart?|MeshPart? = self.___important.___rig:FindFirstChild("Head")
 
--- Function used for the Teleporter label for Enum.WaypointAction.Custom. Returns true if teleported and false if not teleported
-function class.schema.CustomActionHelpers.Telporter(
-	self: BasePathfindingAI,
-	position: Vector3
-): boolean -- Requires the passing of the waypoint position
-	-- Creates a new small part at the position of the waypoint
-	local makeshiftPart = Instance.new("Part")
-	makeshiftPart.Size = Vector3.new(0.1, 0.1, 0.1)
-	makeshiftPart.Position = position
+                if rigHead == nil then
+                    continue
+                end
 
-	-- Creates an OverlapParams that includes the workspaceSkips.Parts.Teleporters folder, ignoring CanCollide
-	local allowList = OverlapParams.new()
-	allowList.FilterType = Enum.RaycastFilterType.Include
-	allowList.FilterDescendantsInstances = { workspace.Skips.Parts.Teleporters }
+                local headSize = rigHead.Size
+                local sizeX, sizeY, sizeZ = headSize.X/2, headSize.Y/2, headSize.Z/2
 
-	local cast = game.Workspace:GetPartsInPart(makeshiftPart, allowList) -- Casts using game.Workspace:GetPartsInPart() for parts inside the waypoint position
+                local foundGrenade = false
 
-	if cast then -- Checks if a table is returned by the previous operation
-		if table.maxn(cast) > 0 then -- Makes sure there are part(s) inside the table
-			local teleporterEvent: BindableFunction = cast[1]:FindFirstChild("TP") -- Tries to find the BindableFunction nammed "TP" inside the first element of the table
+                local function RaycastPositionToGrenade(position)
+                    local ray = workspace:Raycast(position, grenade.Position)
 
-			-- If found, invokes it with the rig and halts until a response is recieved. If the response is (int) 200 reponse, returns true. Otherwise, returns false
-			if teleporterEvent then
-				local response = false
+                    if not ray then
+                        return false
+                    end
 
-				response = teleporterEvent:Invoke(self.ImportantInformation.rig) -- Invokes the BindableFunction
+                    if ray.Instance ~= grenade then
+                        if ray.Instance:IsDescendantOf(grenade) == false then
+                            return false
+                        end
+                    end
 
-				while response == false do -- Waits for the response
-					if self.Infrmation.Died == true then
-						break
-					end
+                    return true
+                end
 
-					task.wait()
-				end
+                for _ = 1, 10 do
+                    if foundGrenade == true then
+                        break
+                    end
 
-				if response == 200 then -- Checks if the response is 200
-					return true -- Returns true
-				else
-					print(response) -- If not, prints the response
-				end
-			else
-				print("Teleporter function not found.")
-			end
-		else
-			print("Cast table is empty.")
-		end
-	else
-		print("No casted instance.")
-	end
+                    foundGrenade = RaycastPositionToGrenade(
+                        rigHead.Position +
+                        Vector3.new(
+                        self.information.RANDOM:NextNumber(-1, 1) * sizeX,
+                        self.information.RANDOM:NextNumber(-1, 1) * sizeY,
+                        self.information.RANDOM:NextNumber(-1, 1) * sizeZ
+                    ))
+                end
 
-	return false
+                if foundGrenade == false then
+                    continue
+                end
+
+                table.insert(nearbyGrenades, grenade)
+            end
+
+            if table.maxn(nearbyGrenades) == 0 then
+                return
+            end
+
+            table.sort(nearbyGrenades, function(a, b)
+                local deltaA = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, a.Position)
+                local deltaB = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, b.Position)
+
+                if deltaA < deltaB then
+                    return true
+                end
+                
+                return false
+            end)
+
+            grenadeToBeAvoided = nearbyGrenades[1]
+        end
+
+        local humanoid = self.___important.___rig:FindFirstChildOfClass("Humanoid")
+
+        if humanoid == nil then
+            return
+        end
+
+        local grenadeDirection = CFrame.lookAt(self.___important.___rig.PrimaryPart.Position, grenadeToBeAvoided.Position).LookVector
+
+        local moveToPosition = Vector3.new(grenadeDirection.X, 0, grenadeDirection.Y) * -self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS
+
+        local _, returned = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.PathwaypointToVector3, true, self, moveToPosition), true)
+
+        if returned.Resolved == false then
+            return
+        end
+
+        local waypoints = returned.Resolve
+
+        HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWayPoints, true, self, waypoints))
+
+        local grenadeDestroyed = false
+
+        local destroyConnection = grenadeToBeAvoided.Destroying:Connect(function()
+            grenadeDestroyed = true
+        end)
+
+        while grenadeDestroyed == false do
+            if HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, grenadeToBeAvoided.Position) > self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS then
+                continue
+            end
+
+            destroyConnection:Disconnect()
+            grenadeDestroyed = true
+
+            AvoidGrenade(grenadeToBeAvoided)
+        end
+    end
+
+    if fromFunction == "Move" and want == "Halt" then
+        Halt()
+        return
+    end
+
+    if fromFunction == "Move" and want == "Grenade" then
+        AvoidGrenade()
+        return
+    end
+
+    if fromFunction == "CombatHandler" and want == "Grenade" then
+        AvoidGrenade()
+        return
+    end
+
+    warn("___CombatHandler called from function: '" .. fromFunction .. "' wanting the action '" .. want .. "' not fufilled because the fromFunction-want combination is created.")
 end
 
 --[[
-Function used for the Moving Platform label for Enum.WaypointAction.Custom.
-Waits on the platform until the platform has stopped moving.
-Returns true if the rig waited and false otherwise
+Fills in AIPathfindingComponent.information.___targetinformation.____positions with positional information about each target.
 ]]
-function class.schema.CustomActionHelpers.MovingPlatform(
-	self: BasePathfindingAI,
-	position: Vector3
-): boolean -- Requires the passing of the waypoint position
-	-- Creates a small part at the position of the waypoint
-	local makeshiftPart = Instance.new("Part")
-	makeshiftPart.Size = Vector3.new(0.1, 0.1, 0.1)
-	makeshiftPart.Position = position
+function class.schema.___GetTargetPositions(self : AIPathfindingComponent)
+    local possibleTargets = {}
 
-	-- Creates an OVerlapParams that includes the workspace.Skips.Parts.MovingPlatforms folder, ignoring CanCollide
-	local allowList = OverlapParams.new()
-	allowList.FilterType = Enum.RaycastFilterType.Include
-	allowList.FilterDescendantsInstances = { workspace.Skips.Parts.MovingPlatforms }
+    local function GetInstanceFromPath(path : string) : Model|Part?
+        local target = workspace
+        local splitPath = path:split(".")
 
-	local cast = game.Workspace:GetPartsInPart(makeshiftPart, allowList) -- Casts using game.Workspace:GetPartsInPart() for parts inside the waypoint position
+        for index, part in pairs(splitPath) do
+            if index == 1 then
+                continue
+            end
 
-	if cast then -- Checks if a table is returned by the previous operation
-		if table.maxn(cast) > 0 then -- Checks if the table has elements in it
-			-- If there are elements in it, tries to find the "Active" used to wait while the platform is active, and the "Touch" BindableEvent to start the platform
-			local moverPlatform = cast[1].Parent.Parent
-			local moverPlatformActive: BoolValue =
-				moverPlatform:FindFirstChild("Mover"):FindFirstChild("Active")
-			local moverStartEvent: BindableEvent =
-				moverPlatform:FindFirstChild("Attached"):FindFirstChild("Start"):FindFirstChild("Touch")
+            local _, err = pcall(function()
+                target = target[part]
+            end)
 
-			-- If both are found, the Touch BindableEvent is fired with the rig as an argument, and then the rig waits while the platform moves
-			if moverPlatformActive and moverStartEvent then
-				moverStartEvent:Fire() -- Fires the BindableEvent
+            if err then
+                if string.match(err, "is not a valid member of Folder") then
+                    continue
+                end
+                warn(err)
+            end
+        end
 
-				while moverPlatformActive.Value == false do -- Waits until the platform activates
-					if self.Information.Died == true then
-						return false
-					end
+        if target == workspace then
+            return nil
+        end
 
-					task.wait()
-				end
+        return target
+    end
 
-				self.ImportantInformation.script:SetAttribute("OnMovingPlatform", true) -- Publicses that the rig is on a moving platform
+    local function InsertPositionsIntoTable(tagPositionTable)
+        if tagPositionTable == nil then
+            return
+        end
 
-				while moverPlatformActive.Value == true do -- Waits until the platform deactivates
-					if self.Information.Died == true then
-						return false
-					end
-					
-					local startPosition: Vector3 = moverPlatform:FindFirstChild("Attached"):FindFirstChild("Start").Position
+        for path : string, position : Vector3 in tagPositionTable do
+            local targetInstance = GetInstanceFromPath(path)
 
-					self.ImportantInformation.humanoid:MoveTo(startPosition)
-					task.wait()
-				end
+            if targetInstance == nil then
+                continue
+            end
 
-				self.ImportantInformation.script:SetAttribute("OnMovingPlatform", false) -- Publicses that the rig is not on a moving platform
+            table.insert(possibleTargets, {___targetinstance = targetInstance, ___position = position})
+        end
+    end
 
-				return true -- Returns true when the platform deactivates
-			else -- If the "Active" BoolValue and/or "Touch" BindableEvent aren't found, warns useful information for debugging
-				warn(
-					"Found active boolean? ",
-					moverPlatformActive,
-					" Found event? ",
-					moverStartEvent,
-					" Instance: ",
-					cast[1]:GetFullName(),
-					" Parent's parent: ",
-					cast[1].Parent.Parent.Name
-				)
-			end
-		else
-			print("Cast table is empty.")
-		end
-	else
-		print("No casted instance.")
-	end
-	return false
+    for _, tag in pairs(self.information.targettags) do
+        local tagTable = self.information.___targetinformation.___shared_table[tag]
+
+        if tagTable == nil then
+            continue
+        end
+
+        InsertPositionsIntoTable(tagTable["PositionalData"])
+    end
+
+    self.information.___targetinformation.___positions = possibleTargets
+
+    self.signals.___Changed:Fire("___GetTargetPositions", possibleTargets)
 end
 
--- Function used to move the rig to a waypoint, how it does it changes depending on the Waypoint.Action
--- Returns true if the waypoint is reached, returns false if the waypoint is not reached
-function class.schema.MoveToWaypoint(self: BasePathfindingAI, waypoint: PathWaypoint): boolean
-	local realPosition = waypoint.Position -- Initialises a variable with the position of the variable
-	local adjustedPosition = realPosition + Vector3.new(0, self.ImportantInformation.rig.UpperTorso.Position.Y, 0) -- Initialises a variable where the height of the Waypoint.Position.Y is increased by rig.Size.Y/2
+--[[
+Creates a Path object to be used for pathfinding using PathfindingService.
+]]
+function class.schema.CreatePath(self : AIPathfindingComponent)
+    local path : Path = PATHFINDING_SERVICE:CreatePath({
+        AgentRadius = self.information.pathfindinginformation.settings.AGENT_RADIUS,
+        AgentHeight = self.information.pathfindinginformation.settings.AGENT_HEIGHT,
+        WaypointSpacing = self.information.pathfindinginformation.settings.WAYPOINT_SPACING,
+        Costs = self.information.pathfindinginformation.settings.COSTS})
 
-	-- Checks whether the waypoint is still able to reached, and if not returns false
-	if class.schema.CheckWaypointValidity(self, adjustedPosition) ~= true then
-		return false
-	end
+    self.information.pathfindinginformation.___path = path
 
-	self.Information.Moving = true -- Sets main.Moving to true to publicise that the rig is moving
-	self.ImportantInformation.script:SetAttribute("Moving", true) -- Publicses main.Moving to everything
-
-	local continueAfterCustomAction = false -- Used for whether to teleport to the next waypoint after a custom action (due to the action failing to execute)
-	local customAction = false -- Used to indicate whether a custom action was actioned
-
-	-- Checks whether the Waypoint.Action.Name is "Custom", and then executes functions based on the Waypoint.Label
-	if waypoint.Action.Name == "Custom" then
-		customAction = true
-		print("Custom action: " .. waypoint.Label) -- Logging
-
-		-- If the label is "Teleporter", executes main.CustomActionHelpers:Teleporter
-		if waypoint.Label == "Teleporter" then
-			local teleported = class.schema.CustomActionHelpers.Telporter(self, realPosition)
-			if teleported == false then
-				continueAfterCustomAction = true
-			end
-			-- If the label is "Moving Platform", executes main.CustomActionHelpers:MovingPlatform()
-		elseif waypoint.Label == "Moving Platform" then
-			local moved = class.schema.CustomActionHelpers.MovingPlatform(self, realPosition)
-			if moved == false then
-				continueAfterCustomAction = true
-			end
-		end
-	end
-
-	-- If the Waypoint.Action.Name isn't "Custom", then moves the rig to the next waypoint, jumping if needed
-	if (continueAfterCustomAction == true and customAction == true) or customAction == false then
-		-- Causes the rig to jump
-		if waypoint.Action.Name == "Jump" then
-			self.ImportantInformation.humanoid.Jump = true -- Causes the Humanoid to jump
-		end
-
-		self.ImportantInformation.humanoid:MoveTo(adjustedPosition) -- Moves the rig to the Waypoint.Position
-
-		local reachedWaypoint = false -- Initialises a variable to track if the Waypoint has been reached
-		local startTime = tick() -- Tracks the start time of when Humanoid:MoveTo() is called for main.PathfindingInformation.FailureInformation.ExhaustTime
-		local exhaustTime = self.Information.PathfindingInformation.FailureInformation.ExhaustTime
-			/ (self.ImportantInformation.rig.UpperTorso.Position - adjustedPosition).Magnitude --[[
-		^^Sets the amount of time before exhausting the loop]]
-		local exhausted = false -- Tracks if the loop exhausts
-
-		self.ImportantInformation.humanoid.MoveToFinished:Connect(
-			function() -- Flags reachedWaypoint to true when the Humanoid.MoveToFinished is fired
-				reachedWaypoint = true
-			end
-		)
-
-		-- Waits until rig reaches the Waypoint.Position, or until the loop exhausts based on exhaustTime
-		while task.wait() do
-			if self.Information.Died == true then
-				break
-			end
-
-			if reachedWaypoint == true then
-				break
-			elseif tick() - startTime >= exhaustTime then -- checks whether the loop has exhausted
-				exhausted = true -- Flags exhausted as true
-				print("Exhausted")
-				break
-			end
-		end
-
-		-- Tells the programme whether to recalculate the path based on main.PathfindingInformation.FailureInformation.RecalculatePath
-		if exhausted == true then
-			if self.Information.PathfindingInformation.FailureInformation.RecalculatePath == true then
-				self.Information.Moving = false
-				self.ImportantInformation.script:SetAttribute("Moving", false)
-
-				-- Tells the programme whether to force the calculated path to be the goal based on main.PathfindingInformation.FailureInformation.ForcePathfinding
-				if self.Information.PathfindingInformation.FailureInformation.ForcePathfinding == true then
-					print("Forced the next goal to: " .. self.Information.Goal.Part:GetFullName())
-					self.Information.PathfindingInformation.ForcedPart = self.Information.Goal
-				end
-
-				return false
-			end
-		end
-	end
-
-	self.Information.Moving = false -- Indicates that the rig is no longer moving
-	self.ImportantInformation.script:SetAttribute("Moving", false) -- Publicses main.Moving to everything
-
-	return true -- Returns true to indicate the rig successfully moved
+    self.signals.___Changed:Fire("CreatePath", path)
 end
 
--- Function to avoid grenades
-function class.schema.AvoidGrenade(self: BasePathfindingAI): boolean
-	local grenades = game:GetService("CollectionService"):GetTagged("Grenade")
+--[[
+Creates a path to a point using the created path
+]]
+function class.schema.PathwaypointToVector3(self : AIPathfindingComponent, position : Vector3)
+    if self.information.pathfindinginformation.___path == nil then
+        self:CreatePath()
+    end
 
-	-- Makes sure that there's at least one grenade in the workspace
-	if table.maxn(grenades) == 0 then
-		return false
-	end
+    return PROMISES.new(function(resolve, reject)
+        local path : Path = self.information.pathfindinginformation.___path
 
-	-- Shuffles the array for randomness
-	self.Information.RandomNumberGenerator:Shuffle(grenades)
+        local positionUsedForComputeAsync = Vector3.new(self.___important.___rig.PrimaryPart.Position.X, self.___important.___rig.LeftFoot.Position.Y, self.___important.___rig.PrimaryPart.Position.Z)
 
-	-- Sets up some variables used for the following for loop
-	local closestGrenade: { Distance: number, Part: Part } = { Distance = math.huge, Part = nil }
-	local distance
+        local success, err = pcall(function()
+            path:ComputeAsync(positionUsedForComputeAsync, position)
+        end)
 
-	--[[For each grenade in the list, go through them and find the closest grenade and track it's distance and instance,
-		For a grenade that is the same distance as the closest distance, there is a 50/50 chance to choose it as the closest]]
-	for _, grenade: Part in pairs(grenades) do
-		distance = (self.ImportantInformation.rig.PrimaryPart.Position - grenade.Position).Magnitude
-		if distance <= self.ShootingFunctions.GrenadeAvoidanceRange and grenade:GetAttribute("Exploding") == true then
-			if
-				closestGrenade.Distance > distance
-				or (closestGrenade == distance and self.Information.RandomNumberGenerator:NextInteger(1, 2) == 1)
-			then
-				closestGrenade.Distance = distance
-				closestGrenade.Part = grenade
-			end
-		end
-	end
+        if not success then
+            reject("Failed to create path: " .. err)
+        end
 
-	-- If there is no grenade that is close enough that it should be avoided, return false
-	if closestGrenade.Distance == math.huge then
-		return false
-	end
+        if path.Status ~= Enum.PathStatus.Success then
+            reject("Path is not Enum.PathStatus.Success. Status: " .. path.Status.Name)
+        end
 
-	local oppositeMoveDirection
-	local moveDirection
-
-	-- Set the Moving attribute to true to show that it's moving
-	self.ImportantInformation.script:SetAttribute("Moving", true)
-
-	-- Function to make sure that the move Vector3 never has a nan value
-	local function ClampLowVectorValues(vectorComponent: number, multiplier: number): number
-		local sign = (vectorComponent * multiplier >= 0) or false
-		local output = math.clamp(math.abs(vectorComponent * multiplier), 0, math.huge)
-
-		if output ~= output then
-			print("Nan'd")
-			return 0
-		end
-
-		if sign == false then
-			output *= -1
-		end
-
-		return output
-	end
-
-	local grenadeDestroyed = false
-
-	closestGrenade.Part.Destroying:Connect(function()
-		grenadeDestroyed = true
-	end)
-
-	-- While the rig is within self.ShootingFunctions.GrenadeAvoidanceRange, move away from the grenade
-	while
-		(self.ImportantInformation.rig.PrimaryPart.Position - closestGrenade.Part.Position).Magnitude
-		<= self.ShootingFunctions.GrenadeAvoidanceRange
-	do
-		oppositeMoveDirection =
-			CFrame.lookAt(self.ImportantInformation.rig.PrimaryPart.Position, closestGrenade.Part.Position)
-		moveDirection = self.ImportantInformation.rig.PrimaryPart.Position
-			+ Vector3.new(
-				ClampLowVectorValues(oppositeMoveDirection.LookVector.X, -10),
-				ClampLowVectorValues(oppositeMoveDirection.LookVector.Y, -10),
-				ClampLowVectorValues(oppositeMoveDirection.LookVector.Z, -10)
-			)
-		self.ImportantInformation.humanoid:MoveTo(moveDirection)
-		self.ImportantInformation.humanoid.MoveToFinished:Wait()
-
-		-- If the grenade explodes, don't try to move away from it
-		if grenadeDestroyed == true then
-			break
-		end
-	end
-
-	-- Set the Moving attribute to false
-	self.ImportantInformation.script:SetAttribute("Moving", false)
-
-	-- Tells the programme whether to force the calculated path to be the goal based on main.PathfindingInformation.FailureInformation.ForcePathfinding
-	if self.Information.PathfindingInformation.FailureInformation.ForcePathfinding == true then
-		self.Information.PathfindingInformation.ForcedPart = self.Information.Goal
-	end
-
-	-- Return true to show that the rig (tried to) avoid a grenade
-	return true
+        resolve(path:GetWaypoints())
+    end)
 end
 
--- Function used to loop through each waypoint
-function class.schema.MoveThroughWaypoints(self: BasePathfindingAI): nil
-	if self.Information.InCycle == true then -- Makes sure that the script will only run once at a time
-		return
-	end
+--[[
+Returns points to move to.
+]]
+function class.schema.___GetPathfindingWaypoints(self : AIPathfindingComponent)
+    self:___GetTargetPositions()
 
-	local waypoints: {} = self.GetPathfindingWaypoints(self) -- Gets the waypoints to reach a goal
+    table.sort(self.information.___targetinformation.___positions, function(a : {___position : Vector3, ____targetinstance : Model|Part}, b  : {___position : Vector3, ____targetinstance : Model|Part})
+        local deltaA = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, a.___position)
+        local deltaB = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, b.___position)
 
-	if self.Information.TrueGoal == nil then
-		return
-	end
+        if deltaA < deltaB then
+            return true
+        end
 
-	self.Information.InCycle = true -- Indicates that the script is already running
-	self.ImportantInformation.script:SetAttribute("InCycle", true) -- Publicses main.InCycle to everything
+        return false
+    end)
 
-	-- If VisualisationInformation.VisualisePath is true, calls upon VisualisationInformation:PathVisualise() to visualise the path nodes
-	if self.VisualisationInformation.VisualisePath == true then
-		self.Visualisation.PathVisualiser(self, waypoints)
-	end
+    local talbeSize = table.maxn(self.information.___targetinformation.___positions)
+    local maxiumPossibleTargetIndex = math.clamp(talbeSize, 1, 5)
 
-	if self.VisualisationInformation.BillboardTextLabel ~= nil then -- Nil check on VisualisationInformation.BillboardTextLabel
-		self.VisualisationInformation.BillboardTextLabel.Text = "Target: " .. self.Information.TrueGoal.Name -- Changes the VisualisationInformation.BillboardTextLabel text to the current goal
-	end
+    local function GetChance(x)
+        return 100*math.pow(x, 4) - 8*math.pow(x, 3) - math.pow(x, 2) - 5*x
+    end
 
-	-- Listener and variables to track if the target has died or not, and if so to find a new target
-	local goalHumanoid: Humanoid? = self.Information.TrueGoal.Part:FindFirstChildOfClass("Humanoid")
-	local targetDied = false
+    local chosenNumber = self.information.RANDOM:NextNumber(0, GetChance(maxiumPossibleTargetIndex))
 
-	if goalHumanoid then
-		goalHumanoid.Died:Connect(function()
-			targetDied = true
-		end)
-	end
+    local foundInt
 
-	-- Loops through each waypoint, moving to each waypoint and doing a specific action for each, breaks out if the path is blocked
-	for i, v in pairs(waypoints) do
-		if self.Information.Died == true or targetDied == true then -- If the rig or target dies, break out of the loop
-			break
-		end
+    for i = 1, maxiumPossibleTargetIndex do
+        local iLevelChance = GetChance(i)
 
-		if table.maxn(waypoints) - i <= 15 then
-			break
-		end
+        if chosenNumber > iLevelChance then
+            continue
+        end
 
-		self.Halt(self) -- Halts the programme if the rig is able to see an enemy
+        foundInt = i
+        break
+    end
 
-		while self.Information.Moving == true do -- Halts the programme until the rig has stopped moving
-			if self.Information.Died == true then -- If the rig dies, break out of the loop
-				break
-			end
+    local target : {___position : Vector3, ___targetinstance : Part|Model} = self.information.___targetinformation.___positions[foundInt]
 
-			task.wait()
-		end
+    if target == nil then
+        return {}
+    end
 
-		if self.AvoidGrenade(self) == true then -- Avoid grenades, if applicable. If there is a grenade, reroute path after avoiding it
-			break
-		end
+    self.information.___targetinformation.___target = target
 
-		if self.MoveToWaypoint(self, v) ~= true then -- If main:MoveToWaypoint() returns false, the path is blocked and the loop is broken out of
-			print("Blocked!")
-			break
-		end
-	end
+    local _, returned = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.PathwaypointToVector3, true, self, target.___position))
 
-	self.Information.InCycle = false -- Indicates the script has finished
-	self.ImportantInformation.script:SetAttribute("InCycle", false) -- Publicses main.InCycle to everything
+    if returned.Resolved == false then
+        return {}
+    end
 
-	return nil
+    local waypoints = returned.Resolve
+
+    self.signals.___Changed:Fire("___GetPathfindingWaypoints", waypoints)
+
+    return waypoints
 end
 
-function class.schema.CleanUp(self: BasePathfindingAI)
-	-- Destroys the path visualisation folder
-	if self.VisualisationInformation.PathVisualiserFolder ~= nil then
-		self.VisualisationInformation.PathVisualiserFolder:Destroy()
-	end
+--[[
+Metafunction that contains subfunctions for custom actions
+]]
+function class.schema.___CustomWaypointActions(self : AIPathfindingComponent, waypoint : PathWaypoint) : boolean
+    local functions = {}
 
-	self.Shutoff = true
+    self.signals.___CustomWaypointActions:Fire(waypoint.Label, waypoint)
+
+    --[[
+        Function used for the Teleporter label for Enum.WaypointAction.Custom. Returns true if teleported and false if not teleported
+    ]]
+    function functions.Telporter(): boolean -- Requires the passing of the waypoint position
+        local position = waypoint.Position
+
+        -- Creates a new small part at the position of the waypoint
+        local makeshiftPart = Instance.new("Part")
+        makeshiftPart.Size = Vector3.new(0.1, 0.1, 0.1)
+        makeshiftPart.Position = position
+
+        -- Creates an OverlapParams that includes the workspaceSkips.Parts.Teleporters folder, ignoring CanCollide
+        local allowList = OverlapParams.new()
+        allowList.FilterType = Enum.RaycastFilterType.Include
+        allowList.FilterDescendantsInstances = { workspace.Skips.Parts.Teleporters }
+
+        local cast = game.Workspace:GetPartsInPart(makeshiftPart, allowList) -- Casts using game.Workspace:GetPartsInPart() for parts inside the waypoint position
+
+        makeshiftPart:Destroy()
+
+        if cast then -- Checks if a table is returned by the previous operation
+            if table.maxn(cast) > 0 then -- Makes sure there are part(s) inside the table
+                local teleporterEvent: BindableFunction = cast[1]:FindFirstChild("TP") -- Tries to find the BindableFunction nammed "TP" inside the first element of the table
+
+                -- If found, invokes it with the rig and halts until a response is recieved. If the response is (int) 200 reponse, returns true. Otherwise, returns false
+                if teleporterEvent then
+                    local response = false
+
+                    response = teleporterEvent:Invoke(self.ImportantInformation.___rig) -- Invokes the BindableFunction
+
+                    while response == false do -- Waits for the response
+                        if self.Infrmation.Died == true then
+                            break
+                        end
+
+                        task.wait()
+                    end
+
+                    if response == 200 then -- Checks if the response is 200
+                        return true -- Returns true
+                    else
+                        print(response) -- If not, prints the response
+                    end
+                else
+                    print("Teleporter function not found.")
+                end
+            else
+                print("Cast table is empty.")
+            end
+        else
+            print("No casted instance.")
+        end
+
+        return false
+    end
+
+    --[[
+    Function used for the Moving Platform label for Enum.WaypointAction.Custom.
+    Waits on the platform until the platform has stopped moving.
+    Returns true if the rig waited and false otherwise
+    ]]
+    function functions.MovingPlatform(): boolean -- Requires the passing of the waypoint position
+        local position = waypoint.Position
+
+        -- Creates a small part at the position of the waypoint
+        local makeshiftPart = Instance.new("Part")
+        makeshiftPart.Size = Vector3.new(0.1, 0.1, 0.1)
+        makeshiftPart.Position = position
+
+        -- Creates an OVerlapParams that includes the workspace.Skips.Parts.MovingPlatforms folder, ignoring CanCollide
+        local allowList = OverlapParams.new()
+        allowList.FilterType = Enum.RaycastFilterType.Include
+        allowList.FilterDescendantsInstances = { workspace.Skips.Parts.MovingPlatforms }
+
+        local cast = game.Workspace:GetPartsInPart(makeshiftPart, allowList) -- Casts using game.Workspace:GetPartsInPart() for parts inside the waypoint position
+
+        makeshiftPart:Destroy()
+
+        if cast then -- Checks if a table is returned by the previous operation
+            if table.maxn(cast) > 0 then -- Checks if the table has elements in it
+                -- If there are elements in it, tries to find the "Active" used to wait while the platform is active, and the "Touch" BindableEvent to start the platform
+                local moverPlatform = cast[1].Parent.Parent
+                local moverPlatformActive: BoolValue =
+                    moverPlatform:FindFirstChild("Mover"):FindFirstChild("Active")
+                local moverStartEvent: BindableEvent =
+                    moverPlatform:FindFirstChild("Attached"):FindFirstChild("Start"):FindFirstChild("Touch")
+
+                -- If both are found, the Touch BindableEvent is fired with the rig as an argument, and then the rig waits while the platform moves
+                if moverPlatformActive and moverStartEvent then
+                    moverStartEvent:Fire() -- Fires the BindableEvent
+
+                    while moverPlatformActive.Value == false do -- Waits until the platform activates
+                        if self.Information.Died == true then
+                            return false
+                        end
+
+                        task.wait()
+                    end
+
+                    self.ImportantInformation.script:SetAttribute("OnMovingPlatform", true) -- Publicses that the rig is on a moving platform
+
+                    while moverPlatformActive.Value == true do -- Waits until the platform deactivates
+                        if self.Information.Died == true then
+                            return false
+                        end
+                        
+                        local startPosition: Vector3 = moverPlatform:FindFirstChild("Attached"):FindFirstChild("Start").Position
+
+                        self.ImportantInformation.humanoid:MoveTo(startPosition)
+                        task.wait()
+                    end
+
+                    self.ImportantInformation.script:SetAttribute("OnMovingPlatform", false) -- Publicses that the rig is not on a moving platform
+
+                    return true -- Returns true when the platform deactivates
+                else -- If the "Active" BoolValue and/or "Touch" BindableEvent aren't found, warns useful information for debugging
+                    warn(
+                        "Found active boolean? ",
+                        moverPlatformActive,
+                        " Found event? ",
+                        moverStartEvent,
+                        " Instance: ",
+                        cast[1]:GetFullName(),
+                        " Parent's parent: ",
+                        cast[1].Parent.Parent.Name
+                    )
+                end
+            else
+                print("Cast table is empty.")
+            end
+        else
+            print("No casted instance.")
+        end
+        return false
+    end
+
+    return functions[waypoint.Label]()
 end
 
--- Creates a new type called "BasePathfindingAI"
-export type BasePathfindingAI = typeof(class.interface.New(table.unpack(...)))
+
+--[[
+Moves the rig through all the waypoints provided in the waypoints table.
+]]
+function class.schema.MoveToWayPoints(self : AIPathfindingComponent, waypoints : {})
+    return PROMISES.new(function(resolve, reject, onCancel)
+        local cancelPathfinding = false
+
+        local fireStartedMoving = false
+
+        onCancel(function()
+            cancelPathfinding = true
+
+            if fireStartedMoving == true then
+                self.signals.___StoppedMoving:Fire()
+            end
+        end)
+
+        if table.maxn(waypoints) == 0 then
+            reject("There are no waypoints in the waypoint table.")
+        end
+
+        local humanoid = self.___important.___rig:FindFirstChildOfClass("Humanoid")
+
+        if not humanoid then
+            reject("Model has no Humanoid to pathfind to.")
+        end
+
+        if self.information.visualisationinformation.VISUALISE_PATH == true then
+            self:PathVisualiser(waypoints)
+        end
+
+        self.signals.___StartedMoving:Fire(waypoints)
+        fireStartedMoving = true
+
+        for _, waypoint : PathWaypoint in pairs(waypoints) do
+            if cancelPathfinding == true then
+                break
+            end
+
+            if self.information.___stop_pathfinding == true then
+                break
+            end
+
+            self:___CombatHandler("Move", "Halt")
+
+            local completedCustomAction = false
+
+            if waypoint.Action == Enum.PathWaypointAction.Custom then
+                completedCustomAction = self:___CustomWaypointActions(waypoint)
+            end
+
+            if completedCustomAction == true then
+                continue
+            end
+
+            if waypoint.Action == Enum.PathWaypointAction.Jump then
+                humanoid.Jump = true
+            end
+
+            humanoid:MoveTo(waypoint.Position)
+
+            humanoid.MoveToFinished:Wait()
+        end
+
+        self.signals.___StoppedMoving:Fire()
+
+        resolve("Finished pathfinding")
+    end)
+end
+
+--[[
+Starts the cycle of pathfinding for the AI.
+]]
+function class.schema.StartPathfindingCycle(self : AIPathfindingComponent)
+    self.signals.___Changed:Fire("StartPathfindingCycle", true)
+
+    local function Move(waypoints : {})
+        self:___CombatHandler("Move", "Grenade")
+        HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWayPoints, true, self, waypoints))
+    end
+
+    local function GetWaypoints()
+        local waypoints = self:___GetPathfindingWaypoints()
+
+        if table.maxn(waypoints) == 0 then
+            warn("There are no waypoints in the waypoint table.")
+            task.wait(2)
+            return
+        end
+
+        Move(waypoints)
+    end
+
+    while self.information.___stop_pathfinding == false do
+        GetWaypoints()
+        task.wait(0.1)
+    end
+
+    self.signals.___Changed:Fire("StartPathfindingCycle", false)
+end
+
+export type AIPathfindingComponent = typeof(class.interface.new(table.unpack(...)))
 
 return class
