@@ -20,7 +20,7 @@ class.metatable = {__index = class.schema}
 --[[
 Use this function to create a new AIPathfindingComponent.
 ]]
-class.interface.new = function(rig : Model) : AIPathfindingComponent 
+function class.interface.new(rig : Model) : AIPathfindingComponent 
     local self = setmetatable({}, class.metatable)
     
     self.___important = {
@@ -49,6 +49,8 @@ function class.schema:SetUpSignals()
     signals.___StartedMoving = FAST_SIGNAL.new()
     signals.___StoppedMoving = FAST_SIGNAL.new()
     signals.___CustomWaypointActions = FAST_SIGNAL.new()
+    signals.___SearchBegan = FAST_SIGNAL.new()
+    signals.___SearchFinished = FAST_SIGNAL.new()
 
     return signals
 end
@@ -90,9 +92,11 @@ function class.schema:SetUpInformation()
     ]]
     information.pathfindinginformation = {
         -- Variables that shouldn't be modified
-        ___path = nil
+        ___path = nil,
 
         -- Modifiable variables
+        VIEW_DISTANCE = 100,
+        SEARCH_TRIES = 5,
     }
 
     --[[
@@ -161,7 +165,6 @@ When called will:
 8. Remove all references to class.signals.
 ]]
 function class.schema.Destroy(self : AIPathfindingComponent)
-    print(self)
     self.signals.___Destroying:Fire()
 
     local destroyStartTime = tick()
@@ -213,20 +216,18 @@ function class.schema.Destroy(self : AIPathfindingComponent)
     self.signals.___Destroying:Destroy()
 
     self.signals = nil
-    
-    self = nil
 end
 
 --[[
 Function used to visualise the path the rig takes to get to a goal
 ]]
-function class.schema.PathVisualiser(self: AIPathfindingComponent, waypoints: {})
+function class.schema.___PathVisualiser(self: AIPathfindingComponent, waypoints: {})
 	-- Tries to find if a folder to store all the paths has already been made. If it hasn't, then it creates the folder
 	local foundFolder = self.information.visualisationinformation.___visualisation_folder
 	if foundFolder then
 		foundFolder:ClearAllChildren() -- Clears all previous nodes in the folder
 	else
-		-- Creates a new folder with the name "PathVisualiser" and parents it to the workspace
+		-- Creates a new folder  and parents it to the workspace
 		foundFolder = Instance.new("Folder")
 		foundFolder.Name = self.information.visualisationinformation.___visualisation_folder_name
 		foundFolder.Parent = workspace
@@ -312,7 +313,7 @@ want : The function that should be ran by ___CombatHandler.
 function class.schema.___CombatHandler(self : AIPathfindingComponent, fromFunction : "Move"|"CombatHandler", want : "Halt"|"Grenade")
     local function Halt()
         if self.information.combatinformation.___spotted_enemy == false then
-            return
+            return false
         end
 
         local reducedSpeed = false
@@ -323,6 +324,10 @@ function class.schema.___CombatHandler(self : AIPathfindingComponent, fromFuncti
         end
 
         while self.information.combatinformation.___spotted_enemy == true do
+            if self.information.___stop_pathfinding == true then
+                break
+            end
+
             self:___CombatHandler("CombatHandler", "Grenade")
             task.wait()
         end
@@ -330,153 +335,162 @@ function class.schema.___CombatHandler(self : AIPathfindingComponent, fromFuncti
         if reducedSpeed == true then
             self.___important.___state_manager_script:SetAttribute("Walkspeed", self.___important.___state_manager_script:GetAttribute("Walkspeed") + self.information.pathfindinginformation.combatsettings.MOVESPEED_REDUCTION_ON_ENEMY_SIGHT)
         end
+
+        return true
     end
 
     --[[
     Checks if there're any greandes nearby, and if so tries to avoid them.
     ]]
-    local function AvoidGrenade(override : Part?)
-        local grenadeToBeAvoided = override
+    local function AvoidGrenade()
+        local grenadeToBeAvoided
 
-        if grenadeToBeAvoided == nil then
-            local grenades = COLLECTION_SERVICE:GetTagged("Grenade")
+        local grenades = COLLECTION_SERVICE:GetTagged("Grenade")
 
-            -- Check if there are any grenades
-            if table.maxn(grenades) == 0 then
-                return
+        -- Check if there are any grenades
+        if table.maxn(grenades) == 0 then
+            return false
+        end
+
+        local nearbyGrenades = {}
+
+        local function RaycastPositionToGrenade(position, grenadePosition)
+            local params = RaycastParams.new()
+
+            params.FilterType = Enum.RaycastFilterType.Exclude
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Bullets"))
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Visualiser"))
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("AI"))
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Gun"))
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Goal"))
+
+            for _, part in pairs(COLLECTION_SERVICE:GetTagged("Enemy Utilities")) do
+                if part:HasTag("Grenade") then
+                    continue
+                end
+
+                params:AddToFilter(part)
             end
 
-            local nearbyGrenades = {}
+            local lookAtGrenade = CFrame.lookAt(position, grenadePosition)
 
-            for _, grenade : Part in pairs(grenades) do
-                if grenade:GetAttribute("Exploding") ~= true then
-                    continue
-                end
+            local ray = workspace:Raycast(position, lookAtGrenade.LookVector * self.information.pathfindinginformation.VIEW_DISTANCE, params)
 
-                if HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, grenade.Position) > self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS then
-                    continue
-                end
+            if not ray then
+                return false
+            end
 
-                local rigHead : BasePart?|MeshPart? = self.___important.___rig:FindFirstChild("Head")
-
-                if rigHead == nil then
-                    continue
-                end
-
-                local headSize = rigHead.Size
-                local sizeX, sizeY, sizeZ = headSize.X/2, headSize.Y/2, headSize.Z/2
-
-                local foundGrenade = false
-
-                local function RaycastPositionToGrenade(position)
-                    local ray = workspace:Raycast(position, grenade.Position)
-
-                    if not ray then
-                        return false
-                    end
-
-                    if ray.Instance ~= grenade then
-                        if ray.Instance:IsDescendantOf(grenade) == false then
-                            return false
-                        end
-                    end
-
+            for _, tag : string in pairs(ray.Instance:GetTags()) do
+                if tag == "Grenade" then
                     return true
                 end
+            end
+            
+            return false
+        end
 
-                for _ = 1, 10 do
-                    if foundGrenade == true then
-                        break
-                    end
+        for _, grenade : Part in pairs(grenades) do
+            if grenade:GetAttribute("Exploding") ~= true then
+                continue
+            end
 
-                    foundGrenade = RaycastPositionToGrenade(
-                        rigHead.Position +
-                        Vector3.new(
+            if HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, grenade.Position) > self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS then
+                continue
+            end
+
+            local rigHead : BasePart?|MeshPart? = self.___important.___rig:FindFirstChild("Head")
+
+            if rigHead == nil then
+                continue
+            end
+
+            local headSize = rigHead.Size
+            local sizeX, sizeY, sizeZ = headSize.X/2, headSize.Y/2, headSize.Z/2
+
+            local foundGrenade = false
+
+            for _ = 1, 10 do
+                if foundGrenade == true then
+                    break
+                end
+
+                foundGrenade = RaycastPositionToGrenade(
+                    rigHead.Position +
+                    Vector3.new(
                         self.information.RANDOM:NextNumber(-1, 1) * sizeX,
                         self.information.RANDOM:NextNumber(-1, 1) * sizeY,
                         self.information.RANDOM:NextNumber(-1, 1) * sizeZ
-                    ))
-                end
-
-                if foundGrenade == false then
-                    continue
-                end
-
-                table.insert(nearbyGrenades, grenade)
+                        ),
+                    grenade.Position
+                )
             end
 
-            if table.maxn(nearbyGrenades) == 0 then
-                return
+            if foundGrenade == false then
+                continue
             end
 
-            table.sort(nearbyGrenades, function(a, b)
-                local deltaA = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, a.Position)
-                local deltaB = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, b.Position)
-
-                if deltaA < deltaB then
-                    return true
-                end
-                
-                return false
-            end)
-
-            grenadeToBeAvoided = nearbyGrenades[1]
+            table.insert(nearbyGrenades, grenade)
         end
+
+        if table.maxn(nearbyGrenades) == 0 then
+            return false
+        end
+
+        table.sort(nearbyGrenades, function(a, b)
+            local deltaA = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, a.Position)
+            local deltaB = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, b.Position)
+
+            if deltaA < deltaB then
+                return true
+            end
+            
+            return false
+        end)
+
+        grenadeToBeAvoided = nearbyGrenades[1]
 
         local humanoid = self.___important.___rig:FindFirstChildOfClass("Humanoid")
 
         if humanoid == nil then
-            return
+            return false
         end
 
         local grenadeDirection = CFrame.lookAt(self.___important.___rig.PrimaryPart.Position, grenadeToBeAvoided.Position).LookVector
 
-        local moveToPosition = Vector3.new(grenadeDirection.X, 0, grenadeDirection.Y) * -self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS
+        local moveToPosition = Vector3.new(grenadeDirection.X, 0, grenadeDirection.Y) * -self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS + self.___important.___rig.PrimaryPart.Position
 
-        local _, returned = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.PathwaypointToVector3, true, self, moveToPosition), true)
+        local _, returned = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.PathwaypointToVector3, true, self, moveToPosition))
 
         if returned.Resolved == false then
-            return
+            return false
         end
 
         local waypoints = returned.Resolve
 
-        HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWayPoints, true, self, waypoints))
+        local _, promiseReturn = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWaypoints, true, self, waypoints))
 
-        local grenadeDestroyed = false
-
-        local destroyConnection = grenadeToBeAvoided.Destroying:Connect(function()
-            grenadeDestroyed = true
-        end)
-
-        while grenadeDestroyed == false do
-            if HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, grenadeToBeAvoided.Position) > self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS then
-                continue
-            end
-
-            destroyConnection:Disconnect()
-            grenadeDestroyed = true
-
-            AvoidGrenade(grenadeToBeAvoided)
+        if promiseReturn.Resolved == false then
+            return false
         end
+
+        return true
     end
 
     if fromFunction == "Move" and want == "Halt" then
-        Halt()
-        return
+        return Halt()
     end
 
     if fromFunction == "Move" and want == "Grenade" then
-        AvoidGrenade()
-        return
+        return AvoidGrenade()
     end
 
     if fromFunction == "CombatHandler" and want == "Grenade" then
-        AvoidGrenade()
-        return
+        return AvoidGrenade()
     end
 
     warn("___CombatHandler called from function: '" .. fromFunction .. "' wanting the action '" .. want .. "' not fufilled because the fromFunction-want combination is created.")
+    
+    return
 end
 
 --[[
@@ -799,7 +813,7 @@ end
 --[[
 Moves the rig through all the waypoints provided in the waypoints table.
 ]]
-function class.schema.MoveToWayPoints(self : AIPathfindingComponent, waypoints : {})
+function class.schema.MoveToWaypoints(self : AIPathfindingComponent, waypoints : {})
     return PROMISES.new(function(resolve, reject, onCancel)
         local cancelPathfinding = false
 
@@ -824,11 +838,13 @@ function class.schema.MoveToWayPoints(self : AIPathfindingComponent, waypoints :
         end
 
         if self.information.visualisationinformation.VISUALISE_PATH == true then
-            self:PathVisualiser(waypoints)
+            self:___PathVisualiser(waypoints)
         end
 
         self.signals.___StartedMoving:Fire(waypoints)
         fireStartedMoving = true
+
+        local waypointClone = table.clone(waypoints)
 
         for _, waypoint : PathWaypoint in pairs(waypoints) do
             if cancelPathfinding == true then
@@ -839,7 +855,9 @@ function class.schema.MoveToWayPoints(self : AIPathfindingComponent, waypoints :
                 break
             end
 
-            self:___CombatHandler("Move", "Halt")
+            table.remove(waypointClone, 1)
+
+            local avoidedGrenade : boolean = self:___CombatHandler("Move", "Grenade")
 
             local completedCustomAction = false
 
@@ -858,6 +876,13 @@ function class.schema.MoveToWayPoints(self : AIPathfindingComponent, waypoints :
             humanoid:MoveTo(waypoint.Position)
 
             humanoid.MoveToFinished:Wait()
+
+            if avoidedGrenade == true then
+                cancelPathfinding = true
+                HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWaypoints, true, self, waypointClone))
+            end
+
+            local _halted : boolean = self:___CombatHandler("Move", "Halt")
         end
 
         self.signals.___StoppedMoving:Fire()
@@ -867,6 +892,222 @@ function class.schema.MoveToWayPoints(self : AIPathfindingComponent, waypoints :
 end
 
 --[[
+Starts the search cycle of the main pathfinding cycle. If the AI doesn't have sight (from the head) of the target at the end of pathfinding,
+it will move in random directions to get to the target.
+]]
+function class.schema.SearchCycle(self : AIPathfindingComponent, initialWaypoints : {})
+    local target : Model|Part = self.information.___targetinformation.___target.___targetinstance
+    HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWaypoints, true, self, initialWaypoints))
+
+    local function CanRigSeeTarget()
+        local rigHead : BasePart?|MeshPart? = self.___important.___rig:FindFirstChild("Head")
+
+        if rigHead == nil then
+            return false
+        end
+
+        local headSize = rigHead.Size
+        local sizeX, sizeY, sizeZ = headSize.X/2, headSize.Y/2, headSize.Z/2
+
+        local foundGrenade = false
+
+        local function RaycastPositionToTarget(position)
+            local params = RaycastParams.new()
+
+            params.FilterType = Enum.RaycastFilterType.Exclude
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Bullets"))
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Visualiser"))
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Enemy Utilities"))
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("AI"))
+            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Gun"))
+
+            local targetPosition
+
+            if target:IsA("Model") then
+                local primaryPart = target.PrimaryPart
+
+                if primaryPart == nil then
+                    return true
+                end
+
+                targetPosition = primaryPart.Position
+            elseif target:IsA("Part") then
+                targetPosition = target.Position
+            else
+                warn("Target is not a model/part; therefore it is impossible to find its position. Target class: " .. target.ClassName)
+                return true
+            end
+
+            local lookAtTarget = CFrame.lookAt(position, targetPosition)
+
+            local ray = workspace:Raycast(position, lookAtTarget.LookVector * self.information.pathfindinginformation.VIEW_DISTANCE, params)
+
+            if not ray then
+                return false
+            end
+
+            if ray.Instance ~= target then
+                --[[
+                Check if what the rig sees is an enemy or not
+                ]]
+                for _, tag : string in pairs(ray.Instance:GetTags()) do
+                    if table.find(self.information.targettags, tag) then
+                        return true
+                    end
+                end
+
+                --[[
+                If that part is a part and has a model as its parent, check the parent's tags too.
+                ]]
+                if ray.Instance:FindFirstAncestorOfClass("Model") then
+                    for _, tag : string in pairs(ray.Instance:FindFirstAncestorOfClass("Model"):GetTags()) do
+                        if table.find(self.information.targettags, tag) then
+                            return true
+                        end
+                    end
+                end
+
+                if ray.Instance:IsDescendantOf(target) == false then
+                    return false
+                end
+            end
+
+            return true
+        end
+
+        for _ = 1, 10 do
+            if foundGrenade == true then
+                break
+            end
+
+            foundGrenade = RaycastPositionToTarget(
+                rigHead.Position +
+                Vector3.new(
+                self.information.RANDOM:NextNumber(-1, 1) * sizeX,
+                self.information.RANDOM:NextNumber(-1, 1) * sizeY,
+                self.information.RANDOM:NextNumber(-1, 1) * sizeZ
+            ))
+        end
+
+        if foundGrenade == false then
+            return false
+        end
+
+        return true
+    end
+    
+    if CanRigSeeTarget() == true then
+        return
+    end
+
+    --[[
+    The function that selects where the rig should move to to continue to search for the target
+    ]]
+    local function SearchAlgorithm() : Vector3
+        --[[
+        Function to choose the point where the rig should go
+        ]]
+        local function ChoosePoint()
+            return self.___important.___rig.PrimaryPart.Position + Vector3.new(self.information.RANDOM:NextInteger(-10, 10), 0, self.information.RANDOM:NextInteger(-10, 10))
+        end
+
+        --[[
+        Function to check if the space where the point was chosen is able to be reached
+        ]]
+        local function  CheckIfSpaceIsAvailable(position : Vector3)
+            local overlapParameters = OverlapParams.new()
+            overlapParameters.FilterType = Enum.RaycastFilterType.Exclude
+            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("AI"))
+            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Bullets"))
+            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Grenade"))
+            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Goal"))
+            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Visualiser"))
+            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Gun"))
+            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Enemy Utilities"))
+            overlapParameters:AddToFilter(self.___important.___rig)
+
+            local isAreaOpen = workspace:GetPartBoundsInBox(CFrame.new(position), Vector3.new(2.5, 2.5, 2.5), overlapParameters)
+
+            if table.maxn(isAreaOpen) > 0 then
+                print("Space not available", isAreaOpen)
+                return false
+            end
+
+            local head : BasePart = self.___important.___rig:FindFirstChild("Head")
+
+            if head == nil then
+                return true
+            end
+
+            local raycastParameters = RaycastParams.new()
+            raycastParameters.FilterType = Enum.RaycastFilterType.Exclude
+            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("AI"))
+            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Bullets"))
+            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Grenade"))
+            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Goal"))
+            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Visualiser"))
+            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Gun"))
+            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Enemy Utilities"))
+            raycastParameters:AddToFilter(self.___important.___rig)
+
+            local distanceBetweenPrimaryPartAndHead = HELPER.NumberManipulation.Delta(head.Position, self.___important.___rig.PrimaryPart.Position)
+
+            local lookDirection = CFrame.lookAt(head.Position, position + Vector3.new(0, distanceBetweenPrimaryPartAndHead, 0)).LookVector * HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, position)
+
+            local isThereAWall = workspace:Raycast(head.Position, lookDirection, raycastParameters)
+
+            if isThereAWall then
+                print("Wall in way. Hit: " .. isThereAWall.Instance:GetFullName())
+                return false
+            end
+
+            return true
+        end
+
+        local newPosition = ChoosePoint()
+
+        if CheckIfSpaceIsAvailable(newPosition) == false then
+            while CheckIfSpaceIsAvailable(newPosition) == false do
+                newPosition = ChoosePoint()
+                task.wait()
+            end
+        end
+
+        return newPosition
+    end
+
+    local _returnFunction
+    local promiseReturn
+
+    local tries = 0
+
+    self.signals.___SearchBegan:Fire()
+
+    while task.wait() do
+        if CanRigSeeTarget() == true then
+            self.signals.___SearchFinished:Fire("Found target")
+            return
+        end
+
+        if tries >= self.information.pathfindinginformation.SEARCH_TRIES then
+            self.signals.___SearchFinished:Fire("Ran out of tries")
+            return
+        end
+
+        tries += 1
+
+        _returnFunction, promiseReturn = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.PathwaypointToVector3, true, self, SearchAlgorithm()), false)
+
+        if promiseReturn.Resolved == false then
+            break
+        end
+
+        HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWaypoints, true, self, promiseReturn.Resolve))
+    end
+end
+
+
+--[[
 Starts the cycle of pathfinding for the AI.
 ]]
 function class.schema.StartPathfindingCycle(self : AIPathfindingComponent)
@@ -874,7 +1115,7 @@ function class.schema.StartPathfindingCycle(self : AIPathfindingComponent)
 
     local function Move(waypoints : {})
         self:___CombatHandler("Move", "Grenade")
-        HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWayPoints, true, self, waypoints))
+        self:SearchCycle(waypoints)
     end
 
     local function GetWaypoints()
@@ -891,7 +1132,7 @@ function class.schema.StartPathfindingCycle(self : AIPathfindingComponent)
 
     while self.information.___stop_pathfinding == false do
         GetWaypoints()
-        task.wait(0.1)
+        task.wait()
     end
 
     self.signals.___Changed:Fire("StartPathfindingCycle", false)

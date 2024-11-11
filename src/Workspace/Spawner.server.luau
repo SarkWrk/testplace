@@ -1,5 +1,5 @@
 local startingPosition = Vector3.new(-29.399, 0.003, -198.199)
-local cloner = workspace.Goals.Goal1
+local cloner = workspace.Goals.Goal1:Clone()
 
 script:SetAttribute("Max", 30)
 
@@ -16,16 +16,16 @@ while task.wait() do
 		a:SetAttribute("Defense", math.random(0, 90))
 		a.Parent = workspace.Goals
 		
-		--coroutine.resume(coroutine.create(function()
-		--	while task.wait() do
-		--		task.wait(Random.new():NextNumber(3, 5))
-		--		if a:GetAttribute("Armed") == false then
+		coroutine.resume(coroutine.create(function()
+			while task.wait() do
+				task.wait(Random.new():NextNumber(3, 5))
+				if a:GetAttribute("Armed") == false then
 					a:SetAttribute("Armed", true)
-		--		else
-		--			a:SetAttribute("Armed", false)
-		--		end
-		--	end
-		--end))
+				else
+					a:SetAttribute("Armed", false)
+				end
+			end
+		end))
 	end
 	
 	for _, v in pairs(workspace.Goals:GetChildren()) do
@@ -36,9 +36,10 @@ while task.wait() do
 		
 		if v:FindFirstChild("Humanoid") then
 			if v.Humanoid.Health <= 0 then
-				clones -= 1
 				v:Destroy()
 			end
 		end
 	end
+
+	clones = #workspace.Goals:GetChildren()
 end

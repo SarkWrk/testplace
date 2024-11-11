@@ -8,7 +8,7 @@ module.TableManipulation = {}
 module.Promises = {}
 
 export type PromiseReturn = {
-	Resolve : any,
+	Resolve : any?,
 	Resolved : boolean,
 	Error : any?,
 	Reject : any?,
@@ -480,6 +480,19 @@ function module.TableManipulation.CreateRelativeTable(tableOfPositions : {[numbe
     end
 
 	return relativeDistances
+end
+
+--[[
+Creates a deep clone of a table. Check https://create.roblox.com/docs/luau/tables#deep-clones to learn more.
+]]
+function module.TableManipulation.CreateDeepClone(original : {[any?] : any?})
+	local copy = {}
+
+	for key, value in original do
+		copy[key] = type(value) == "table" and module.TableManipulation.CreateDeepClone(value) or value
+	end
+
+	return copy
 end
 
 return module
