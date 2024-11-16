@@ -1,6 +1,6 @@
 task.wait(1)
 
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("ByteNet"):WaitForChild("Packets"))
+local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
 local helper = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local playerData = game:GetService("SharedTableRegistry"):GetSharedTable("TrackedPlayerData")
 
@@ -8,6 +8,7 @@ packets.ArmClient.ArmClient.listen(function(data, player)
 	local playerModel = player.Character
 
 	if not playerModel then
+		print("No player model")
 		return
 	end
 	

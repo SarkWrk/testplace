@@ -44,7 +44,12 @@ function module.Promises.ExceptionHandler(PromiseReturn : PromiseReturn, reportS
 		end
 		
 		if PromiseReturn.Reject then
-			warn("Promise was rejected: " .. PromiseReturn.Reject .. GetTraceback(false))
+			if typeof(PromiseReturn.Reject) == "string" then
+				warn("Promise was rejected: " .. PromiseReturn.Reject .. GetTraceback(false))
+			else
+				warn("Promise was rejected! Backtrace: " .. GetTraceback(false))
+				warn(PromiseReturn.Reject)
+			end
 		end
 
 		return PromiseReturn.Promise, PromiseReturn

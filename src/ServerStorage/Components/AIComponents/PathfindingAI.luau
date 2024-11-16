@@ -2,252 +2,255 @@
 local class = {}
 
 -- Services
-local SHARED_TABLE_REGISTRY = game:GetService("SharedTableRegistry")
-local REPLICATED_STORAGE = game:GetService("ReplicatedStorage")
-local PATHFINDING_SERVICE = game:GetService("PathfindingService")
-local COLLECTION_SERVICE = game:GetService("CollectionService")
+local Shared_Table_Registry = game:GetService("SharedTableRegistry")
+local Replicated_Storage = game:GetService("ReplicatedStorage")
+local Pathfinding_Service = game:GetService("PathfindingService")
+local Collection_Service = game:GetService("CollectionService")
 
 -- Dependencies
-local _TYPES = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("Types"))
-local HELPER = require(REPLICATED_STORAGE:WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
-local FAST_SIGNAL = require(REPLICATED_STORAGE:WaitForChild("FastSignal"):WaitForChild("FastSignal"))
-local PROMISES = require(game:GetService("ReplicatedStorage"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+local _Types = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("Types"))
+local HelperModule = require(Replicated_Storage:WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
+local Fast_Signal = require(Replicated_Storage:WaitForChild("dependencies"):WaitForChild("FastSignal"):WaitForChild("FastSignal"))
+local Promises =
+	require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
 
 class.interface = {}
 class.schema = {}
-class.metatable = {__index = class.schema}
+class.metatable = { __index = class.schema }
 
 --[[
 Use this function to create a new AIPathfindingComponent.
 ]]
-function class.interface.new(rig : Model) : AIPathfindingComponent 
-    local self = setmetatable({}, class.metatable)
-    
-    self.___important = {
-        ___rig = rig,
-        ___state_manager_script = Instance.new("Script"),
-    }
-    self.information = self:SetUpInformation()
-    self.signals = self:SetUpSignals()
+function class.interface.new(rig: Model, stateManagerScript: Script, ownerScript : Script): AIPathfindingComponent
+	local self = setmetatable({}, class.metatable)
 
-    return self
+	--[[
+	A table containing important information necessary for class functionaility because they're (probably) asked for a lot.
+	]]
+	self._important = {
+		_rig = rig,
+		_state_manager_script = stateManagerScript,
+		_script =  ownerScript,
+	}
+
+	self.information = self:SetUpInformation() :: information
+	self.signals = self:SetUpSignals() :: signals
+
+	return self
 end
 
 --[[
 Sets up the signals used in this class.
 ]]
-function class.schema:SetUpSignals()
-    --[[
+function class.schema.SetUpSignals(): signals
+	--[[
     Contain the signals that will be fired by this component.
 
     Note: Changed is a global variable that will fire whenever something notable (except when Destroying fires) changes.
     ]]
-    local signals = {}
+	local signals = {}
 
-    signals.___Changed = FAST_SIGNAL.new()
-    signals.___Destroying = FAST_SIGNAL.new()
-    signals.___StartedMoving = FAST_SIGNAL.new()
-    signals.___StoppedMoving = FAST_SIGNAL.new()
-    signals.___CustomWaypointActions = FAST_SIGNAL.new()
-    signals.___SearchBegan = FAST_SIGNAL.new()
-    signals.___SearchFinished = FAST_SIGNAL.new()
+	signals.Changed = Fast_Signal.new()
+	signals.Destroying = Fast_Signal.new()
+	signals.StartedMoving = Fast_Signal.new()
+	signals.StoppedMoving = Fast_Signal.new()
+	signals._CustomWaypointActions = Fast_Signal.new()
+	signals.SearchBegan = Fast_Signal.new()
+	signals.SearchFinished = Fast_Signal.new()
 
-    return signals
+	return signals
 end
 
 --[[
-Sets up underlying information required for the class to run. Values with the prefix '___' should not be touched.
+Sets up underlying information required for the class to run. Values with the prefix '_' should not be touched.
 ]]
-function class.schema:SetUpInformation()
-    --[[
+function class.schema.SetUpInformation(): information
+	--[[
     Contains various variables and subtables used for the tasks that this component does.
     ]]
-    local information = {
-        -- Variables that shouldn't be modified
-        ___stop_pathfinding = false,
+	local information = {
+		-- Variables that shouldn't be modified
+		_stop_pathfinding = false,
+		_dead = false,
 
-        -- Modifiable variables
-        RANDOM = Random.new()
-    }
+		-- Modifiable variables
+		random = Random.new(),
+		difficulty = 100,
+	}
 
-    --[[
+	--[[
     Contains the potential tags that the component will take into consideration when pathfinding.
     ]]
-    information.targettags = {
-        "Goal"
-    }
+	information.targettags = {
+		"Goal",
+	}
 
-    --[[
+	--[[
     DO NOT TOUCH!
 
     Contains information about the current target, positions of every possible target, and the SharedTable used to find the positions of targets.
     ]]
-    information.___targetinformation = {
-        ___positions = {},
-        ___target = nil,
-        ___shared_table = SHARED_TABLE_REGISTRY:GetSharedTable("PositionsTrackerTable")}
+	information._targetinformation = {
+		_positions = {},
+		_target = nil,
+		_shared_table = Shared_Table_Registry:GetSharedTable("PositionsTrackerTable"),
+	}
 
-    --[[
+	--[[
     Contains information used when pathfinding.
     ]]
-    information.pathfindinginformation = {
-        -- Variables that shouldn't be modified
-        ___path = nil,
+	information.pathfindinginformation = {
+		-- Variables that shouldn't be modified
+		_path = nil,
+		_stop_pathing = false,
 
-        -- Modifiable variables
-        VIEW_DISTANCE = 100,
-        SEARCH_TRIES = 5,
-    }
+		-- Modifiable variables
+		viewDistance = 100,
+		searchTries = 5,
+	}
 
-    --[[
-    Contains information used when creating a Path using PathfindingService:CreatePath().
+	--[[
+    Contains the settings used when creating a Path using PathfindingService:CreatePath().
     ]]
-    information.pathfindinginformation.settings = {
-        --Modifiable variables
-        AGENT_RADIUS = 2,
-        AGENT_HEIGHT = 5,
-        WAYPOINT_SPACING = 1,
-        COSTS = {}
-    }
+	information.pathfindinginformation.settings = {
+		--Modifiable variables
+		AgentRadius = 2,
+		AgentHeight = 5,
+		waypointSpacing = 1,
+		Costs = {},
 
-    --[[
+		PathSettings = {
+			SupportPartialPath = true,
+		},
+	}
+
+	--[[
     Contains information used during pathfinding on what to do in combat situations.
     ]]
-    information.pathfindinginformation.combatsettings = {
-        -- Variables that shouldn't be modified
+	information.pathfindinginformation.combatsettings = {
+		-- Variables that shouldn't be modified
 
-        -- Modifiable varibles
-        SHOULD_STOP_ON_ENEMY_SIGHT = true,
-        MOVESPEED_REDUCTION_ON_ENEMY_SIGHT = 8,
-        GRENADE_AVOIDANCE_RADIUS = 40,
-    }
+		-- Modifiable varibles
+		shouldStopOnEnemySight = true,
+		movespeedReductionOnEnemySight = 8,
+		grenadeAvoidanceRadius = 40,
+	}
 
-    --[[
+	--[[
     Contains information used when visualising things from this component.
     ]]
-    information.visualisationinformation = {
-        -- Variables that shouldn't be modified
-        ___visualisation_folder = nil,
-        ___visualisation_folder_name = self.___important.___rig:GetFullName(),
+	information.visualisationinformation = {
+		-- Variables that shouldn't be modified
+		_visualisation_folder = nil,
+		_visualisation_folder_name = "Visualiser" .. information.random:NextNumber(1, 1000000000),
 
-        -- Modifiable variables
-        VISUALISE_PATH = true,
-        VISUALISATION_SPACING = 1,
-        NORMAL_NODE_SIZE = 1,
-        JUMP_NODE_SIZE_MULTIPLIER = 2,
-        CUSTOM_NODE_SIZE_MULTIPLIER = 4,
-    }
+		-- Modifiable variables
+		visualisePath = true,
+		visualisationSpacing = 1,
+		normalNodeSize = 1,
+		jumpNodeSizeMultiplier = 2,
+		customNodeSizeMultiplier = 3,
+	}
 
-    --[[
+	--[[
     Contains used information about AICombatComponent.
     ]]
-    information.combatinformation = {
-        -- Variables that shouldn't be modified
-        ___spotted_enemy = false
+	information.combatinformation = {
+		-- Variables that shouldn't be modified
+		_spotted_enemy = false,
+		_avoiding_grenade = false,
 
-        -- Modifiable variables
-    }
+		-- Modifiable variables
+	}
 
-    return information
+	return information
 end
 
 --[[
-This function cleans up the component to be able to be GC'd. Any connections to ___Destroying and ___Changed are given 2 seconds before being disconnected.
-
-When called will:
-1. Fire the ___Destroying event.
-2. Set class.information.___stop_pathfinding to true.
-3. Destroy, (if applicable) class.information.visualisationinformation.___visualisation_folder and class.information.pathfindinginformation.___path,
-4. Disconnect all signals baring ___Changed and ___Destroying.
-5. Wait 2 seconds since class.signals.____Destroying was called.
-6. Remove all references to class.information and class.___important.
-7. Disconnect ___Changed and ___Destroying.
-8. Remove all references to class.signals.
+This function cleans up the component to be able to be GC'd. Any connections to Destroying and Changed are given 2 seconds before being disconnected.
+    
+Note: The class will be set to nil after the 2 seconds.
 ]]
-function class.schema.Destroy(self : AIPathfindingComponent)
-    self.signals.___Destroying:Fire()
+function class.schema.Destroy(self: AIPathfindingComponent)
+	self.signals.Destroying:Fire()
 
-    local destroyStartTime = tick()
+	local destroyStartTime = tick()
 
-    self.information.___stop_pathfinding = true
+	self.information._stop_pathfinding = true
 
-    local function DestroyObjects()
-        if self.information.visualisationinformation.___visualisation_folder ~= nil then
-            self.information.visualisationinformation.___visualisation_folder:Destroy()
-        end
-    
-        if self.information.pathfindinginformation.___path then
-            self.information.pathfindinginformation.___path:DEstroy()
-        end
-    
-        self.information.RANDOM = nil
-    end
+	local function DestroyObjects()
+		if self.information.visualisationinformation._visualisation_folder ~= nil then
+			self.information.visualisationinformation._visualisation_folder:Destroy()
+		end
 
-    local function RemoveSignals()
-        for signal_name, signal in pairs(self.signals) do
-            if signal_name == "___Destroying" then
-                continue
-            end
-    
-            if signal_name == "___Changed" then
-                continue
-            end
-    
-            signal:Destroy()
-        end
-    end
+		if self.information.pathfindinginformation._path then
+			self.information.pathfindinginformation._path:DEstroy()
+		end
 
-    local function RemoveReferences()
-        self.information = nil
-        self.___important = nil
-    end
+		self.information.random = nil
+	end
 
-    DestroyObjects()
+	local function RemoveSignals()
+		for signal_name, signal in pairs(self.signals) do
+			if signal_name == "Destroying" then
+				continue
+			end
 
-    RemoveSignals()
+			if signal_name == "Changed" then
+				continue
+			end
 
-    while tick()-destroyStartTime < 2 do
-        task.wait()
-    end
+			signal:Destroy()
+		end
+	end
 
-    RemoveReferences()
+	DestroyObjects()
 
-    self.signals.___Changed:Destroy()
-    self.signals.___Destroying:Destroy()
+	RemoveSignals()
 
-    self.signals = nil
+	while tick() - destroyStartTime < 2 do
+		task.wait()
+	end
+
+	self.signals.Changed:Destroy()
+	self.signals.Destroying:Destroy()
+
+	self.signals = nil
 end
 
 --[[
 Function used to visualise the path the rig takes to get to a goal
 ]]
-function class.schema.___PathVisualiser(self: AIPathfindingComponent, waypoints: {})
-	-- Tries to find if a folder to store all the paths has already been made. If it hasn't, then it creates the folder
-	local foundFolder = self.information.visualisationinformation.___visualisation_folder
-	if foundFolder then
-		foundFolder:ClearAllChildren() -- Clears all previous nodes in the folder
-	else
-		-- Creates a new folder  and parents it to the workspace
-		foundFolder = Instance.new("Folder")
-		foundFolder.Name = self.information.visualisationinformation.___visualisation_folder_name
-		foundFolder.Parent = workspace
-		self.information.visualisationinformation.___visualisation_folder = foundFolder
+function class.schema._PathVisualiser(self: AIPathfindingComponent, waypoints: { PathWaypoint })
+	local foundFolder = Instance.new("Folder")
+
+	if self.information.visualisationinformation._visualisation_folder == nil then
+		local newFolder = Instance.new("Folder")
+		newFolder.Name = self.information.visualisationinformation._visualisation_folder_name
+		newFolder.Parent = workspace
+		self.information.visualisationinformation._visualisation_folder = newFolder
 	end
+
+	foundFolder.Parent = self.information.visualisationinformation._visualisation_folder
 
 	-- Checks if the visualisation node spacing is less than the agent waypoint spacing, and if so sets the visualisation node spacing to the agent's
-	if self.information.visualisationinformation.VISUALISATION_SPACING < self.information.pathfindinginformation.settings.WAYPOINT_SPACING then
+	if
+		self.information.visualisationinformation.visualisationSpacing
+		< self.information.pathfindinginformation.settings.waypointSpacing
+	then
 		print(
-			"Setting visualisationinformation.VISUALISATION_SPACING to "
-				.. self.information.pathfindinginformation.settings.WAYPOINT_SPACING
+			"Setting visualisationinformation.visualisationSpacing to "
+				.. self.information.pathfindinginformation.settings.waypointSpacing
 				.. " (Previously: "
-				.. self.information.visualisationinformation.VISUALISATION_SPACING
+				.. self.information.visualisationinformation.visualisationSpacing
 				.. ")"
 		)
-		self.information.visualisationinformation.VISUALISATION_SPACING = self.information.pathfindinginformation.settings.WAYPOINT_SPACING
+		self.information.visualisationinformation.visualisationSpacing =
+			self.information.pathfindinginformation.settings.waypointSpacing
 	end
 
-	local spacer = self.information.visualisationinformation.VISUALISATION_SPACING
-		/ self.information.pathfindinginformation.settings.WAYPOINT_SPACING --[[ Calculates
+	local spacer = self.information.visualisationinformation.visualisationSpacing
+		/ self.information.pathfindinginformation.settings.waypointSpacing --[[ Calculates
 	how often to create a visualised node]]
 	local counter = 0 -- Keeps track of when to place a node
 
@@ -257,24 +260,30 @@ function class.schema.___PathVisualiser(self: AIPathfindingComponent, waypoints:
 		local waypoint = Instance.new("Part")
 		counter += 1 -- Increments the counter
 
-		-- Jump actions are never skipped, have visualisationinformation.JUMP_NODE_SIZE_MULTIPLIER the size of a normal node, and are given a GREEN colour
+		-- Jump actions are never skipped, have visualisationinformation.jumpNodeSizeMultiplier the size of a normal node, and are given a GREEN colour
 		if v.Action == Enum.PathWaypointAction.Jump then
 			counter = 0 -- Resets the counter
 			waypoint.Color = Color3.new(0.278431, 0.674510, 0.082353) -- Sets the colour
 			waypoint.Size = Vector3.new(
-				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.JUMP_NODE_SIZE_MULTIPLIER,
-				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.JUMP_NODE_SIZE_MULTIPLIER,
-				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.JUMP_NODE_SIZE_MULTIPLIER
+				self.information.visualisationinformation.normalNodeSize
+					* self.information.visualisationinformation.jumpNodeSizeMultiplier,
+				self.information.visualisationinformation.normalNodeSize
+					* self.information.visualisationinformation.jumpNodeSizeMultiplier,
+				self.information.visualisationinformation.normalNodeSize
+					* self.information.visualisationinformation.jumpNodeSizeMultiplier
 			)
 
-			-- Custom actions are never skipped, have visualisationinformation.CUSTOM_NODE_SIZE_MULTIPLIER the size of a normal node, and are given a PINK-ISH-WHITE colour
+			-- Custom actions are never skipped, have visualisationinformation.customNodeSizeMultiplier the size of a normal node, and are given a PINK-ISH-WHITE colour
 		elseif v.Action == Enum.PathWaypointAction.Custom then
 			counter = 0 -- Resets the counter
 			waypoint.Color = Color3.new(1.000000, 0.537255, 1.000000) -- Sets the colour
 			waypoint.Size = Vector3.new(
-				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.CUSTOM_NODE_SIZE_MULTIPLIER,
-				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.CUSTOM_NODE_SIZE_MULTIPLIER,
-				self.information.visualisationinformation.NORMAL_NODE_SIZE * self.information.visualisationinformation.CUSTOM_NODE_SIZE_MULTIPLIER
+				self.information.visualisationinformation.normalNodeSize
+					* self.information.visualisationinformation.customNodeSizeMultiplier,
+				self.information.visualisationinformation.normalNodeSize
+					* self.information.visualisationinformation.customNodeSizeMultiplier,
+				self.information.visualisationinformation.normalNodeSize
+					* self.information.visualisationinformation.customNodeSizeMultiplier
 			)
 
 			-- Walk actions can be skipped, and are given an ORANGE colour
@@ -296,8 +305,33 @@ function class.schema.___PathVisualiser(self: AIPathfindingComponent, waypoints:
 		waypoint.Anchored = true -- Sets the anchored property of the node to true
 		waypoint.Locked = true -- Sets the locked property of the node to true
 		waypoint:AddTag("Visualiser")
+
+		local waypointLabelText = "WP: " .. i
+		local textSize = 10
+
+		local billboard = Instance.new("BillboardGui")
+		billboard.StudsOffset = Vector3.new(0, 2, 0)
+		billboard.Size = UDim2.fromOffset(waypointLabelText:len(), textSize)
+
+		local waypointLabel = Instance.new("TextLabel")
+		waypointLabel.Size = UDim2.fromOffset(waypointLabelText:len(), textSize)
+		waypointLabel.Text = waypointLabelText
+		waypointLabel.BackgroundTransparency = 1
+		waypointLabel.TextSize = textSize
+
+		waypointLabel.Parent = billboard
+
+		billboard.Parent = waypoint
 		waypoint.Parent = foundFolder -- Parents the node to the folder
 	end
+
+	coroutine.resume(coroutine.create(function()
+		self.signals.StoppedMoving:Wait()
+
+		foundFolder:Destroy()
+	end))
+
+	self.signals.Changed:Fire("_PathVisualiser", foundFolder)
 end
 
 --[[
@@ -306,838 +340,945 @@ The functions require a pre-set 'fromFunction-want' pairing to work.
 This function always returns void.
 Warns if a specific 'fromFunction-want' pairing has not been created.
 
-fromFunction : The function calling ___CombatHandler.
+`fromFunction` : The function calling _CombatHandler.
 
-want : The function that should be ran by ___CombatHandler.
+`want` : The function that should be ran by _CombatHandler.
 ]]
-function class.schema.___CombatHandler(self : AIPathfindingComponent, fromFunction : "Move"|"CombatHandler", want : "Halt"|"Grenade")
-    local function Halt()
-        if self.information.combatinformation.___spotted_enemy == false then
-            return false
-        end
+function class.schema._CombatHandler(
+	self: AIPathfindingComponent,
+	fromFunction: "Move" | "CombatHandler",
+	want: "Halt" | "Grenade"
+): boolean | string
+	local function Halt()
+		if self.information.combatinformation._spotted_enemy == false then
+			return false
+		end
 
-        local reducedSpeed = false
+		local reducedSpeed = false
 
-        if self.information.pathfindinginformation.combatsettings.SHOULD_STOP_ON_ENEMY_SIGHT == false then
-            reducedSpeed = true
-            self.___important.___state_manager_script:SetAttribute("Walkspeed", self.___important.___state_manager_script:GetAttribute("Walkspeed") - self.information.pathfindinginformation.combatsettings.MOVESPEED_REDUCTION_ON_ENEMY_SIGHT)
-        end
+		if self.information.pathfindinginformation.combatsettings.shouldStopOnEnemySight == false then
+			reducedSpeed = true
+			self._important._state_manager_script:SetAttribute(
+				"Walkspeed",
+				self._important._state_manager_script:GetAttribute("Walkspeed")
+					- self.information.pathfindinginformation.combatsettings.movespeedReductionOnEnemySight
+			)
+		end
 
-        while self.information.combatinformation.___spotted_enemy == true do
-            if self.information.___stop_pathfinding == true then
-                break
-            end
+		while self.information.combatinformation._spotted_enemy == true do
+			if self.information._stop_pathfinding == true then
+				break
+			end
 
-            self:___CombatHandler("CombatHandler", "Grenade")
-            task.wait()
-        end
+			self:_CombatHandler("CombatHandler", "Grenade")
+			task.wait()
+		end
 
-        if reducedSpeed == true then
-            self.___important.___state_manager_script:SetAttribute("Walkspeed", self.___important.___state_manager_script:GetAttribute("Walkspeed") + self.information.pathfindinginformation.combatsettings.MOVESPEED_REDUCTION_ON_ENEMY_SIGHT)
-        end
+		if reducedSpeed == true then
+			self._important._state_manager_script:SetAttribute(
+				"Walkspeed",
+				self._important._state_manager_script:GetAttribute("Walkspeed")
+					+ self.information.pathfindinginformation.combatsettings.movespeedReductionOnEnemySight
+			)
+		end
 
-        return true
-    end
+		return true
+	end
 
-    --[[
+	--[[
     Checks if there're any greandes nearby, and if so tries to avoid them.
     ]]
-    local function AvoidGrenade()
-        local grenadeToBeAvoided
+	local function AvoidGrenade()
+		if self.information.combatinformation._avoiding_grenade == true then
+			while self.information.combatinformation._avoiding_grenade == true do
+				task.wait()
+			end
+		end
+		self.information.combatinformation._avoiding_grenade = true
 
-        local grenades = COLLECTION_SERVICE:GetTagged("Grenade")
+		local grenadeToBeAvoided
 
-        -- Check if there are any grenades
-        if table.maxn(grenades) == 0 then
-            return false
-        end
+		local grenades = Collection_Service:GetTagged("Grenade")
 
-        local nearbyGrenades = {}
+		-- Check if there are any grenades
+		if table.maxn(grenades) == 0 then
+			return false
+		end
 
-        local function RaycastPositionToGrenade(position, grenadePosition)
-            local params = RaycastParams.new()
+		local nearbyGrenades = {}
 
-            params.FilterType = Enum.RaycastFilterType.Exclude
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Bullets"))
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Visualiser"))
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("AI"))
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Gun"))
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Goal"))
+		local function RaycastPositionToGrenade(position, grenadePosition)
+			local params = RaycastParams.new()
 
-            for _, part in pairs(COLLECTION_SERVICE:GetTagged("Enemy Utilities")) do
-                if part:HasTag("Grenade") then
-                    continue
-                end
+			params.FilterType = Enum.RaycastFilterType.Exclude
+			params:AddToFilter(Collection_Service:GetTagged("Bullets"))
+			params:AddToFilter(Collection_Service:GetTagged("Visualiser"))
+			params:AddToFilter(Collection_Service:GetTagged("AI"))
+			params:AddToFilter(Collection_Service:GetTagged("Gun"))
+			params:AddToFilter(Collection_Service:GetTagged("Goal"))
 
-                params:AddToFilter(part)
-            end
+			for _, part in pairs(Collection_Service:GetTagged("Enemy Utilities")) do
+				if part:HasTag("Grenade") then
+					continue
+				end
 
-            local lookAtGrenade = CFrame.lookAt(position, grenadePosition)
+				params:AddToFilter(part)
+			end
 
-            local ray = workspace:Raycast(position, lookAtGrenade.LookVector * self.information.pathfindinginformation.VIEW_DISTANCE, params)
+			local lookAtGrenade = CFrame.lookAt(position, grenadePosition)
 
-            if not ray then
-                return false
-            end
+			local ray = workspace:Raycast(
+				position,
+				lookAtGrenade.LookVector * self.information.pathfindinginformation.viewDistance,
+				params
+			)
 
-            for _, tag : string in pairs(ray.Instance:GetTags()) do
-                if tag == "Grenade" then
-                    return true
-                end
-            end
-            
-            return false
-        end
+			if not ray then
+				return false
+			end
 
-        for _, grenade : Part in pairs(grenades) do
-            if grenade:GetAttribute("Exploding") ~= true then
-                continue
-            end
+			for _, tag: string in pairs(ray.Instance:GetTags()) do
+				if tag == "Grenade" then
+					return true
+				end
+			end
 
-            if HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, grenade.Position) > self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS then
-                continue
-            end
+			return false
+		end
 
-            local rigHead : BasePart?|MeshPart? = self.___important.___rig:FindFirstChild("Head")
+		for _, grenade: Part in pairs(grenades) do
+			if grenade:GetAttribute("Exploding") ~= true then
+				continue
+			end
 
-            if rigHead == nil then
-                continue
-            end
+			if
+				HelperModule.NumberManipulation.Delta(self._important._rig.PrimaryPart.Position, grenade.Position)
+				> self.information.pathfindinginformation.combatsettings.grenadeAvoidanceRadius
+			then
+				continue
+			end
 
-            local headSize = rigHead.Size
-            local sizeX, sizeY, sizeZ = headSize.X/2, headSize.Y/2, headSize.Z/2
+			local rigHead: BasePart? | MeshPart? = self._important._rig:FindFirstChild("Head")
 
-            local foundGrenade = false
+			if rigHead == nil then
+				continue
+			end
 
-            for _ = 1, 10 do
-                if foundGrenade == true then
-                    break
-                end
+			local headSize = rigHead.Size
+			local sizeX, sizeY, sizeZ = headSize.X / 2, headSize.Y / 2, headSize.Z / 2
 
-                foundGrenade = RaycastPositionToGrenade(
-                    rigHead.Position +
-                    Vector3.new(
-                        self.information.RANDOM:NextNumber(-1, 1) * sizeX,
-                        self.information.RANDOM:NextNumber(-1, 1) * sizeY,
-                        self.information.RANDOM:NextNumber(-1, 1) * sizeZ
-                        ),
-                    grenade.Position
-                )
-            end
+			local foundGrenade = false
 
-            if foundGrenade == false then
-                continue
-            end
+			for _ = 1, 10 do
+				if foundGrenade == true then
+					break
+				end
 
-            table.insert(nearbyGrenades, grenade)
-        end
+				foundGrenade = RaycastPositionToGrenade(
+					rigHead.Position
+						+ Vector3.new(
+							self.information.random:NextNumber(-1, 1) * sizeX,
+							self.information.random:NextNumber(-1, 1) * sizeY,
+							self.information.random:NextNumber(-1, 1) * sizeZ
+						),
+					grenade.Position
+				)
+			end
 
-        if table.maxn(nearbyGrenades) == 0 then
-            return false
-        end
+			if foundGrenade == false then
+				continue
+			end
 
-        table.sort(nearbyGrenades, function(a, b)
-            local deltaA = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, a.Position)
-            local deltaB = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, b.Position)
+			table.insert(nearbyGrenades, grenade)
+		end
 
-            if deltaA < deltaB then
-                return true
-            end
-            
-            return false
-        end)
+		if table.maxn(nearbyGrenades) == 0 then
+			self.information.combatinformation._avoiding_grenade = false
+			return false
+		end
 
-        grenadeToBeAvoided = nearbyGrenades[1]
+		table.sort(nearbyGrenades, function(a, b)
+			local deltaA = HelperModule.NumberManipulation.Delta(self._important._rig.PrimaryPart.Position, a.Position)
+			local deltaB = HelperModule.NumberManipulation.Delta(self._important._rig.PrimaryPart.Position, b.Position)
 
-        local humanoid = self.___important.___rig:FindFirstChildOfClass("Humanoid")
+			if deltaA < deltaB then
+				return true
+			end
 
-        if humanoid == nil then
-            return false
-        end
+			return false
+		end)
 
-        local grenadeDirection = CFrame.lookAt(self.___important.___rig.PrimaryPart.Position, grenadeToBeAvoided.Position).LookVector
+		grenadeToBeAvoided = nearbyGrenades[1]
 
-        local moveToPosition = Vector3.new(grenadeDirection.X, 0, grenadeDirection.Y) * -self.information.pathfindinginformation.combatsettings.GRENADE_AVOIDANCE_RADIUS + self.___important.___rig.PrimaryPart.Position
+		local humanoid = self._important._rig:FindFirstChildOfClass("Humanoid")
 
-        local _, returned = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.PathwaypointToVector3, true, self, moveToPosition))
+		if humanoid == nil then
+			self.information.combatinformation._avoiding_grenade = false
+			return false
+		end
 
-        if returned.Resolved == false then
-            return false
-        end
+		local grenadeDirection =
+			CFrame.lookAt(self._important._rig.PrimaryPart.Position, grenadeToBeAvoided.Position).LookVector
 
-        local waypoints = returned.Resolve
+		local moveToPosition = Vector3.new(grenadeDirection.X, 0, grenadeDirection.Y)
+				* -self.information.pathfindinginformation.combatsettings.grenadeAvoidanceRadius
+			+ self._important._rig.PrimaryPart.Position
 
-        local _, promiseReturn = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWaypoints, true, self, waypoints))
+		local function CheckPositionValidity(position)
+			local positionLookAt = CFrame.lookAt(self._important._rig.PrimaryPart.Position, position).LookVector
+			local distance = HelperModule.NumberManipulation.Delta(self._important._rig.PrimaryPart.Position, position)
 
-        if promiseReturn.Resolved == false then
-            return false
-        end
+			local params = RaycastParams.new()
+			params.FilterType = Enum.RaycastFilterType.Exclude
 
-        return true
-    end
+			params.FilterType = Enum.RaycastFilterType.Exclude
+			params:AddToFilter(Collection_Service:GetTagged("Bullets"))
+			params:AddToFilter(Collection_Service:GetTagged("Visualiser"))
+			params:AddToFilter(Collection_Service:GetTagged("AI"))
+			params:AddToFilter(Collection_Service:GetTagged("Gun"))
+			params:AddToFilter(Collection_Service:GetTagged("Goal"))
+			params:AddToFilter(Collection_Service:GetTagged("Enemy Utilities"))
 
-    if fromFunction == "Move" and want == "Halt" then
-        return Halt()
-    end
+			local ray = workspace:Raycast(self._important._rig.PrimaryPart.Position, positionLookAt * distance, params)
 
-    if fromFunction == "Move" and want == "Grenade" then
-        return AvoidGrenade()
-    end
+			if not ray then
+				return position
+			end
 
-    if fromFunction == "CombatHandler" and want == "Grenade" then
-        return AvoidGrenade()
-    end
+			local newPosition = self._important._rig.PrimaryPart.Position + positionLookAt * (ray.Distance - 0.1)
 
-    warn("___CombatHandler called from function: '" .. fromFunction .. "' wanting the action '" .. want .. "' not fufilled because the fromFunction-want combination is created.")
-    
-    return
+			return newPosition
+		end
+
+		local _, returned = HelperModule.Promises.ExceptionHandler(
+			HelperModule.Promises.PromiseHandler(
+				self._PathwaypointToVector3,
+				true,
+				self,
+				CheckPositionValidity(moveToPosition)
+			)
+		)
+
+		if returned.Resolved == false then
+			self.information.combatinformation._avoiding_grenade = false
+			return false
+		end
+
+		local waypoints = returned.Resolve
+
+		local _, promiseReturn = HelperModule.Promises.ExceptionHandler(
+			HelperModule.Promises.PromiseHandler(self._MoveToWaypoints, true, self, waypoints)
+		)
+
+		self.information.combatinformation._avoiding_grenade = false
+
+		if promiseReturn.Resolved == false then
+			return false
+		end
+
+		return true
+	end
+
+	self.signals.Changed:Fire("_CombatHandler", fromFunction, want)
+
+	if fromFunction == "Move" and want == "Halt" then
+		return Halt()
+	end
+
+	if fromFunction == "Move" and want == "Grenade" then
+		return AvoidGrenade()
+	end
+
+	local warnMessage = "_CombatHandler called from function: '"
+		.. fromFunction
+		.. "' wanting the action '"
+		.. want
+		.. "' not fufilled because the fromFunction-want combination is created."
+
+	warn(warnMessage)
+
+	return warnMessage
 end
 
 --[[
-Fills in AIPathfindingComponent.information.___targetinformation.____positions with positional information about each target.
+Fills in AIPathfindingComponent.information._targetinformation.__positions with positional information about each target.
 ]]
-function class.schema.___GetTargetPositions(self : AIPathfindingComponent)
-    local possibleTargets = {}
+function class.schema._GetTargetPositions(self: AIPathfindingComponent)
+	local possibleTargets = {}
 
-    local function GetInstanceFromPath(path : string) : Model|Part?
-        local target = workspace
-        local splitPath = path:split(".")
+	local function GetInstanceFromPath(path: string): Model | Part?
+		local target = workspace
+		local splitPath = path:split(".")
 
-        for index, part in pairs(splitPath) do
-            if index == 1 then
-                continue
-            end
+		for index, part in pairs(splitPath) do
+			if index == 1 then
+				continue
+			end
 
-            local _, err = pcall(function()
-                target = target[part]
-            end)
+			local _, err = pcall(function()
+				target = target[part]
+			end)
 
-            if err then
-                if string.match(err, "is not a valid member of Folder") then
-                    continue
-                end
-                warn(err)
-            end
-        end
+			if err then
+				if string.match(err, "is not a valid member of Folder") then
+					continue
+				end
+				warn(err)
+			end
+		end
 
-        if target == workspace then
-            return nil
-        end
+		if target == workspace then
+			return nil
+		end
 
-        return target
-    end
+		return target
+	end
 
-    local function InsertPositionsIntoTable(tagPositionTable)
-        if tagPositionTable == nil then
-            return
-        end
+	local function InsertPositionsIntoTable(tagPositionTable)
+		if tagPositionTable == nil then
+			return
+		end
 
-        for path : string, position : Vector3 in tagPositionTable do
-            local targetInstance = GetInstanceFromPath(path)
+		for path: string, position: Vector3 in tagPositionTable do
+			local targetInstance = GetInstanceFromPath(path)
 
-            if targetInstance == nil then
-                continue
-            end
+			if targetInstance == nil then
+				continue
+			end
 
-            table.insert(possibleTargets, {___targetinstance = targetInstance, ___position = position})
-        end
-    end
+			table.insert(possibleTargets, { _targetinstance = targetInstance, _position = position })
+		end
+	end
 
-    for _, tag in pairs(self.information.targettags) do
-        local tagTable = self.information.___targetinformation.___shared_table[tag]
+	for _, tag in pairs(self.information.targettags) do
+		local tagTable = self.information._targetinformation._shared_table[tag]
 
-        if tagTable == nil then
-            continue
-        end
+		if tagTable == nil then
+			continue
+		end
 
-        InsertPositionsIntoTable(tagTable["PositionalData"])
-    end
+		InsertPositionsIntoTable(tagTable["PositionalData"])
+	end
 
-    self.information.___targetinformation.___positions = possibleTargets
+	self.information._targetinformation._positions = possibleTargets
 
-    self.signals.___Changed:Fire("___GetTargetPositions", possibleTargets)
+	self.signals.Changed:Fire("_GetTargetPositions", possibleTargets)
 end
 
 --[[
 Creates a Path object to be used for pathfinding using PathfindingService.
 ]]
-function class.schema.CreatePath(self : AIPathfindingComponent)
-    local path : Path = PATHFINDING_SERVICE:CreatePath({
-        AgentRadius = self.information.pathfindinginformation.settings.AGENT_RADIUS,
-        AgentHeight = self.information.pathfindinginformation.settings.AGENT_HEIGHT,
-        WaypointSpacing = self.information.pathfindinginformation.settings.WAYPOINT_SPACING,
-        Costs = self.information.pathfindinginformation.settings.COSTS})
+function class.schema.CreatePath(self: AIPathfindingComponent)
+	local path: Path = Pathfinding_Service:CreatePath(self.information.pathfindinginformation.settings)
 
-    self.information.pathfindinginformation.___path = path
+	self.information.pathfindinginformation._path = path
 
-    self.signals.___Changed:Fire("CreatePath", path)
+	self.signals.Changed:Fire("CreatePath", path)
 end
 
 --[[
-Creates a path to a point using the created path
+Creates a Path if there isn't one, and then uses it to generate a set of waypoints to `position`.
 ]]
-function class.schema.PathwaypointToVector3(self : AIPathfindingComponent, position : Vector3)
-    if self.information.pathfindinginformation.___path == nil then
-        self:CreatePath()
-    end
+function class.schema._PathwaypointToVector3(
+	self: AIPathfindingComponent,
+	position: Vector3,
+	startPositionOverride: Vector3?
+)
+	if self.information.pathfindinginformation._path == nil then
+		self:CreatePath()
+	end
 
-    return PROMISES.new(function(resolve, reject)
-        local path : Path = self.information.pathfindinginformation.___path
+	return Promises.new(function(resolve, reject)
+		local path: Path = self.information.pathfindinginformation._path
 
-        local positionUsedForComputeAsync = Vector3.new(self.___important.___rig.PrimaryPart.Position.X, self.___important.___rig.LeftFoot.Position.Y, self.___important.___rig.PrimaryPart.Position.Z)
+		local positionUsedForComputeAsync = if startPositionOverride
+			then startPositionOverride
+			else Vector3.new(
+				self._important._rig.PrimaryPart.CFrame.Position.X,
+				self._important._rig.LeftFoot.CFrame.Position.Y,
+				self._important._rig.PrimaryPart.CFrame.Position.Z
+			)
 
-        local success, err = pcall(function()
-            path:ComputeAsync(positionUsedForComputeAsync, position)
-        end)
+		local success, err = pcall(function()
+			path:ComputeAsync(positionUsedForComputeAsync, position)
+		end)
 
-        if not success then
-            reject("Failed to create path: " .. err)
-        end
+		if not success then
+			reject("Failed to create path: " .. err)
+		end
 
-        if path.Status ~= Enum.PathStatus.Success then
-            reject("Path is not Enum.PathStatus.Success. Status: " .. path.Status.Name)
-        end
+		if path.Status == Enum.PathStatus.NoPath then
+			reject("Path Status is Enum.PathStatus.NoPath.")
+		end
 
-        resolve(path:GetWaypoints())
-    end)
+		self.signals.Changed:Fire("_PathwaypointToVector3", path:GetWaypoints())
+
+		resolve(path:GetWaypoints())
+	end)
 end
 
 --[[
 Returns points to move to.
 ]]
-function class.schema.___GetPathfindingWaypoints(self : AIPathfindingComponent)
-    self:___GetTargetPositions()
+function class.schema._GetPathfindingWaypoints(self: AIPathfindingComponent)
+	self:_GetTargetPositions()
 
-    table.sort(self.information.___targetinformation.___positions, function(a : {___position : Vector3, ____targetinstance : Model|Part}, b  : {___position : Vector3, ____targetinstance : Model|Part})
-        local deltaA = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, a.___position)
-        local deltaB = HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, b.___position)
+	table.sort(
+		self.information._targetinformation._positions,
+		function(
+			a: { _position: Vector3, __targetinstance: Model | Part },
+			b: { _position: Vector3, __targetinstance: Model | Part }
+		)
+			local deltaA = HelperModule.NumberManipulation.Delta(self._important._rig.PrimaryPart.Position, a._position)
+			local deltaB = HelperModule.NumberManipulation.Delta(self._important._rig.PrimaryPart.Position, b._position)
 
-        if deltaA < deltaB then
-            return true
-        end
+			if deltaA < deltaB then
+				return true
+			end
 
-        return false
-    end)
+			return false
+		end
+	)
 
-    local talbeSize = table.maxn(self.information.___targetinformation.___positions)
-    local maxiumPossibleTargetIndex = math.clamp(talbeSize, 1, 5)
+	local talbeSize = table.maxn(self.information._targetinformation._positions)
+	local maxiumPossibleTargetIndex = math.clamp(talbeSize, 1, 5)
 
-    local function GetChance(x)
-        return 100*math.pow(x, 4) - 8*math.pow(x, 3) - math.pow(x, 2) - 5*x
-    end
+	local function GetChance(x)
+		return 100 * math.pow(x, 4) - 8 * math.pow(x, 3) - math.pow(x, 2) - 5 * x
+	end
 
-    local chosenNumber = self.information.RANDOM:NextNumber(0, GetChance(maxiumPossibleTargetIndex))
+	local chosenNumber = self.information.random:NextNumber(0, GetChance(maxiumPossibleTargetIndex))
 
-    local foundInt
+	local foundInt
 
-    for i = 1, maxiumPossibleTargetIndex do
-        local iLevelChance = GetChance(i)
+	for i = 1, maxiumPossibleTargetIndex do
+		local iLevelChance = GetChance(i)
 
-        if chosenNumber > iLevelChance then
-            continue
-        end
+		if chosenNumber > iLevelChance then
+			continue
+		end
 
-        foundInt = i
-        break
-    end
+		foundInt = i
+		break
+	end
 
-    local target : {___position : Vector3, ___targetinstance : Part|Model} = self.information.___targetinformation.___positions[foundInt]
+	local target: { _position: Vector3, _targetinstance: Part | Model } =
+		self.information._targetinformation._positions[foundInt]
 
-    if target == nil then
-        return {}
-    end
+	if target == nil then
+		return {}
+	end
 
-    self.information.___targetinformation.___target = target
+	self.information._targetinformation._target = target
 
-    local _, returned = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.PathwaypointToVector3, true, self, target.___position))
+	local _, returned = HelperModule.Promises.ExceptionHandler(
+		HelperModule.Promises.PromiseHandler(self._PathwaypointToVector3, true, self, target._position)
+	)
 
-    if returned.Resolved == false then
-        return {}
-    end
+	if returned.Resolved == false then
+		return {}
+	end
 
-    local waypoints = returned.Resolve
+	local waypoints = returned.Resolve
 
-    self.signals.___Changed:Fire("___GetPathfindingWaypoints", waypoints)
+	self.signals.Changed:Fire("_GetPathfindingWaypoints", waypoints)
 
-    return waypoints
+	return waypoints
 end
 
 --[[
 Metafunction that contains subfunctions for custom actions
 ]]
-function class.schema.___CustomWaypointActions(self : AIPathfindingComponent, waypoint : PathWaypoint) : boolean
-    local functions = {}
+function class.schema._CustomWaypointActions(self: AIPathfindingComponent, waypoint: PathWaypoint): boolean
+	local functions = {}
 
-    self.signals.___CustomWaypointActions:Fire(waypoint.Label, waypoint)
+	self.signals._CustomWaypointActions:Fire(waypoint.Label, waypoint)
 
-    --[[
+	--[[
         Function used for the Teleporter label for Enum.WaypointAction.Custom. Returns true if teleported and false if not teleported
     ]]
-    function functions.Telporter(): boolean -- Requires the passing of the waypoint position
-        local position = waypoint.Position
+	functions["Teleporter"] = function(): boolean -- Requires the passing of the waypoint position
+		local position = waypoint.Position
 
-        -- Creates a new small part at the position of the waypoint
-        local makeshiftPart = Instance.new("Part")
-        makeshiftPart.Size = Vector3.new(0.1, 0.1, 0.1)
-        makeshiftPart.Position = position
+		-- Creates an OverlapParams that includes the workspaceSkips.Parts.Teleporters folder, ignoring CanCollide
+		local allowList = OverlapParams.new()
+		allowList.FilterType = Enum.RaycastFilterType.Include
+		allowList.FilterDescendantsInstances = { workspace.Skips.Parts.Teleporters }
 
-        -- Creates an OverlapParams that includes the workspaceSkips.Parts.Teleporters folder, ignoring CanCollide
-        local allowList = OverlapParams.new()
-        allowList.FilterType = Enum.RaycastFilterType.Include
-        allowList.FilterDescendantsInstances = { workspace.Skips.Parts.Teleporters }
+		local cast = workspace:GetPartBoundsInBox(CFrame.new(position), Vector3.new(0.1, 0.1, 0.1), allowList) -- Casts using game.Workspace:GetPartsInPart() for parts inside the waypoint position
 
-        local cast = game.Workspace:GetPartsInPart(makeshiftPart, allowList) -- Casts using game.Workspace:GetPartsInPart() for parts inside the waypoint position
+		if cast then -- Checks if a table is returned by the previous operation
+			if table.maxn(cast) > 0 then -- Makes sure there are part(s) inside the table
+				local teleporterEvent: BindableFunction = cast[1]:FindFirstChild("TP") -- Tries to find the BindableFunction nammed "TP" inside the first element of the table
 
-        makeshiftPart:Destroy()
+				-- If found, invokes it with the rig and halts until a response is recieved. If the response is (int) 200 reponse, returns true. Otherwise, returns false
+				if teleporterEvent then
+					local response = false
 
-        if cast then -- Checks if a table is returned by the previous operation
-            if table.maxn(cast) > 0 then -- Makes sure there are part(s) inside the table
-                local teleporterEvent: BindableFunction = cast[1]:FindFirstChild("TP") -- Tries to find the BindableFunction nammed "TP" inside the first element of the table
+					response = teleporterEvent:Invoke(self._important._rig) -- Invokes the BindableFunction
 
-                -- If found, invokes it with the rig and halts until a response is recieved. If the response is (int) 200 reponse, returns true. Otherwise, returns false
-                if teleporterEvent then
-                    local response = false
+					while response == false do -- Waits for the response
+						task.wait()
+					end
 
-                    response = teleporterEvent:Invoke(self.ImportantInformation.___rig) -- Invokes the BindableFunction
+					if response == 200 then -- Checks if the response is 200
+						return true -- Returns true
+					else
+						print(response) -- If not, prints the response
+					end
+				else
+					print("Teleporter function not found.")
+				end
+			else
+				print("Cast table is empty.")
+			end
+		else
+			print("No casted instance.")
+		end
 
-                    while response == false do -- Waits for the response
-                        if self.Infrmation.Died == true then
-                            break
-                        end
+		return false
+	end
 
-                        task.wait()
-                    end
-
-                    if response == 200 then -- Checks if the response is 200
-                        return true -- Returns true
-                    else
-                        print(response) -- If not, prints the response
-                    end
-                else
-                    print("Teleporter function not found.")
-                end
-            else
-                print("Cast table is empty.")
-            end
-        else
-            print("No casted instance.")
-        end
-
-        return false
-    end
-
-    --[[
+	--[[
     Function used for the Moving Platform label for Enum.WaypointAction.Custom.
     Waits on the platform until the platform has stopped moving.
     Returns true if the rig waited and false otherwise
     ]]
-    function functions.MovingPlatform(): boolean -- Requires the passing of the waypoint position
-        local position = waypoint.Position
+	functions["Moving Platform"] = function(): boolean -- Requires the passing of the waypoint position
+		local position = waypoint.Position
 
-        -- Creates a small part at the position of the waypoint
-        local makeshiftPart = Instance.new("Part")
-        makeshiftPart.Size = Vector3.new(0.1, 0.1, 0.1)
-        makeshiftPart.Position = position
+		-- Creates an OVerlapParams that includes the workspace.Skips.Parts.MovingPlatforms folder, ignoring CanCollide
+		local allowList = OverlapParams.new()
+		allowList.FilterType = Enum.RaycastFilterType.Include
+		allowList.FilterDescendantsInstances = { workspace.Skips.Parts.MovingPlatforms }
 
-        -- Creates an OVerlapParams that includes the workspace.Skips.Parts.MovingPlatforms folder, ignoring CanCollide
-        local allowList = OverlapParams.new()
-        allowList.FilterType = Enum.RaycastFilterType.Include
-        allowList.FilterDescendantsInstances = { workspace.Skips.Parts.MovingPlatforms }
+		local cast = workspace:GetPartBoundsInBox(CFrame.new(position), Vector3.new(0.1, 0.1, 0.1), allowList) -- Casts using game.Workspace:GetPartsInPart() for parts inside the waypoint position
 
-        local cast = game.Workspace:GetPartsInPart(makeshiftPart, allowList) -- Casts using game.Workspace:GetPartsInPart() for parts inside the waypoint position
+		if cast then -- Checks if a table is returned by the previous operation
+			if table.maxn(cast) > 0 then -- Checks if the table has elements in it
+				-- If there are elements in it, tries to find the "Active" used to wait while the platform is active, and the "Touch" BindableEvent to start the platform
+				local moverPlatformSubPart = cast[1]
 
-        makeshiftPart:Destroy()
+				if not moverPlatformSubPart then
+					return false
+				end
 
-        if cast then -- Checks if a table is returned by the previous operation
-            if table.maxn(cast) > 0 then -- Checks if the table has elements in it
-                -- If there are elements in it, tries to find the "Active" used to wait while the platform is active, and the "Touch" BindableEvent to start the platform
-                local moverPlatform = cast[1].Parent.Parent
-                local moverPlatformActive: BoolValue =
-                    moverPlatform:FindFirstChild("Mover"):FindFirstChild("Active")
-                local moverStartEvent: BindableEvent =
-                    moverPlatform:FindFirstChild("Attached"):FindFirstChild("Start"):FindFirstChild("Touch")
+				local moverPlatform = moverPlatformSubPart.Parent.Parent
+				local moverPlatformActive: BoolValue = moverPlatform:FindFirstChild("Mover"):FindFirstChild("Active")
+				local moverStartEvent: BindableEvent =
+					moverPlatform:FindFirstChild("Attached"):FindFirstChild("Start"):FindFirstChild("Touch")
 
-                -- If both are found, the Touch BindableEvent is fired with the rig as an argument, and then the rig waits while the platform moves
-                if moverPlatformActive and moverStartEvent then
-                    moverStartEvent:Fire() -- Fires the BindableEvent
+				-- If both are found, the Touch BindableEvent is fired with the rig as an argument, and then the rig waits while the platform moves
+				if moverPlatformActive and moverStartEvent then
+					moverStartEvent:Fire() -- Fires the BindableEvent
 
-                    while moverPlatformActive.Value == false do -- Waits until the platform activates
-                        if self.Information.Died == true then
-                            return false
-                        end
+					while moverPlatformActive.Value == false do -- Waits until the platform activates
+						task.wait()
+					end
 
-                        task.wait()
-                    end
+					self._important._script:SetAttribute("OnMovingPlatform", true) -- Publicses that the rig is on a moving platform
 
-                    self.ImportantInformation.script:SetAttribute("OnMovingPlatform", true) -- Publicses that the rig is on a moving platform
+					while moverPlatformActive.Value == true do -- Waits until the platform deactivates
+						local startPosition: Vector3 =
+							moverPlatform:FindFirstChild("Attached"):FindFirstChild("Start").Position
 
-                    while moverPlatformActive.Value == true do -- Waits until the platform deactivates
-                        if self.Information.Died == true then
-                            return false
-                        end
-                        
-                        local startPosition: Vector3 = moverPlatform:FindFirstChild("Attached"):FindFirstChild("Start").Position
+						self._important._rig.Humanoid:MoveTo(startPosition)
+						task.wait()
+					end
 
-                        self.ImportantInformation.humanoid:MoveTo(startPosition)
-                        task.wait()
-                    end
+					self._important._script:SetAttribute("OnMovingPlatform", false) -- Publicses that the rig is not on a moving platform
 
-                    self.ImportantInformation.script:SetAttribute("OnMovingPlatform", false) -- Publicses that the rig is not on a moving platform
+					return true -- Returns true when the platform deactivates
+				else -- If the "Active" BoolValue and/or "Touch" BindableEvent aren't found, warns useful information for debugging
+					warn(
+						"Found active boolean? ",
+						moverPlatformActive,
+						" Found event? ",
+						moverStartEvent,
+						" Instance: ",
+						cast[1]:GetFullName(),
+						" Parent's parent: ",
+						cast[1].Parent.Parent.Name
+					)
+				end
+			else
+				print("Cast table is empty.")
+			end
+		else
+			print("No casted instance.")
+		end
+		return false
+	end
 
-                    return true -- Returns true when the platform deactivates
-                else -- If the "Active" BoolValue and/or "Touch" BindableEvent aren't found, warns useful information for debugging
-                    warn(
-                        "Found active boolean? ",
-                        moverPlatformActive,
-                        " Found event? ",
-                        moverStartEvent,
-                        " Instance: ",
-                        cast[1]:GetFullName(),
-                        " Parent's parent: ",
-                        cast[1].Parent.Parent.Name
-                    )
-                end
-            else
-                print("Cast table is empty.")
-            end
-        else
-            print("No casted instance.")
-        end
-        return false
-    end
-
-    return functions[waypoint.Label]()
+	return functions[waypoint.Label]()
 end
-
 
 --[[
 Moves the rig through all the waypoints provided in the waypoints table.
 ]]
-function class.schema.MoveToWaypoints(self : AIPathfindingComponent, waypoints : {})
-    return PROMISES.new(function(resolve, reject, onCancel)
-        local cancelPathfinding = false
+function class.schema._MoveToWaypoints(self: AIPathfindingComponent, waypoints: {PathWaypoint})
+	return Promises.new(function(resolve, reject, onCancel)
+		local cancelPathfinding = false
 
-        local fireStartedMoving = false
+		local fireStartedMoving = false
 
-        onCancel(function()
-            cancelPathfinding = true
+		onCancel(function()
+			cancelPathfinding = true
 
-            if fireStartedMoving == true then
-                self.signals.___StoppedMoving:Fire()
-            end
-        end)
+			if fireStartedMoving == true then
+				self.signals.StoppedMoving:Fire()
+			end
+		end)
 
-        if table.maxn(waypoints) == 0 then
-            reject("There are no waypoints in the waypoint table.")
-        end
+		if table.maxn(waypoints) == 0 then
+			reject("There are no waypoints in the waypoint table.")
+		end
 
-        local humanoid = self.___important.___rig:FindFirstChildOfClass("Humanoid")
+		local humanoid: Humanoid = self._important._rig:FindFirstChildOfClass("Humanoid")
 
-        if not humanoid then
-            reject("Model has no Humanoid to pathfind to.")
-        end
+		if not humanoid then
+			reject("Model has no Humanoid to pathfind to.")
+		end
 
-        if self.information.visualisationinformation.VISUALISE_PATH == true then
-            self:___PathVisualiser(waypoints)
-        end
+		if self.information.visualisationinformation.visualisePath == true then
+			self:_PathVisualiser(waypoints)
+		end
 
-        self.signals.___StartedMoving:Fire(waypoints)
-        fireStartedMoving = true
+		self.signals.StartedMoving:Fire(waypoints)
+		fireStartedMoving = true
 
-        local waypointClone = table.clone(waypoints)
+		local avoidedGrenade = false
 
-        for _, waypoint : PathWaypoint in pairs(waypoints) do
-            if cancelPathfinding == true then
-                break
-            end
+		for i, waypoint: PathWaypoint in pairs(waypoints) do
+			if cancelPathfinding == true then
+				break
+			end
 
-            if self.information.___stop_pathfinding == true then
-                break
-            end
+			if self.information._stop_pathfinding == true then
+				break
+			end
 
-            table.remove(waypointClone, 1)
+			local completedCustomAction = false
 
-            local avoidedGrenade : boolean = self:___CombatHandler("Move", "Grenade")
+			if waypoint.Action == Enum.PathWaypointAction.Custom then
+				completedCustomAction = self:_CustomWaypointActions(waypoint)
+			end
 
-            local completedCustomAction = false
+			if completedCustomAction == true then
+				continue
+			end
 
-            if waypoint.Action == Enum.PathWaypointAction.Custom then
-                completedCustomAction = self:___CustomWaypointActions(waypoint)
-            end
+			if waypoint.Action == Enum.PathWaypointAction.Jump then
+				humanoid.Jump = true
+			end
 
-            if completedCustomAction == true then
-                continue
-            end
+			humanoid:MoveTo(waypoint.Position)
 
-            if waypoint.Action == Enum.PathWaypointAction.Jump then
-                humanoid.Jump = true
-            end
+			humanoid.MoveToFinished:Wait()
 
-            humanoid:MoveTo(waypoint.Position)
+			local _halted: boolean = self:_CombatHandler("Move", "Halt")
 
-            humanoid.MoveToFinished:Wait()
+			if self.information.combatinformation._avoiding_grenade == false then
+				avoidedGrenade = self:_CombatHandler("Move", "Grenade")
+			end
 
-            if avoidedGrenade == true then
-                cancelPathfinding = true
-                HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWaypoints, true, self, waypointClone))
-            end
+			if avoidedGrenade == true then
+				break
+			end
+		end
 
-            local _halted : boolean = self:___CombatHandler("Move", "Halt")
-        end
+		if avoidedGrenade == true then
+			print(Vector3.new(self._important._rig.PrimaryPart.Position.X, self._important._rig.LeftFoot.Position.Y, self._important._rig.PrimaryPart.Position.Z), self._important._rig.PrimaryPart.Position)
 
-        self.signals.___StoppedMoving:Fire()
+			self.signals.StoppedMoving:Fire()
+			HelperModule.Promises.ExceptionHandler(
+				HelperModule.Promises.PromiseHandler(
+					self._PathwaypointToVector3,
+					false,
+					self,
+					waypoints[table.maxn(waypoints)]
+				)
+			)
+		else
+			self.signals.StoppedMoving:Fire()
+		end
 
-        resolve("Finished pathfinding")
-    end)
+		resolve("Finished pathfinding")
+	end)
 end
 
 --[[
 Starts the search cycle of the main pathfinding cycle. If the AI doesn't have sight (from the head) of the target at the end of pathfinding,
 it will move in random directions to get to the target.
 ]]
-function class.schema.SearchCycle(self : AIPathfindingComponent, initialWaypoints : {})
-    local target : Model|Part = self.information.___targetinformation.___target.___targetinstance
-    HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWaypoints, true, self, initialWaypoints))
+function class.schema._SearchCycle(self: AIPathfindingComponent, initialWaypoints: {})
+	local target: Model | Part = self.information._targetinformation._target._targetinstance
+	HelperModule.Promises.ExceptionHandler(
+		HelperModule.Promises.PromiseHandler(self._MoveToWaypoints, true, self, initialWaypoints)
+	)
 
-    local function CanRigSeeTarget()
-        local rigHead : BasePart?|MeshPart? = self.___important.___rig:FindFirstChild("Head")
+	local function CanRigSeeTarget()
+		local rigHead: BasePart? | MeshPart? = self._important._rig:FindFirstChild("Head")
 
-        if rigHead == nil then
-            return false
-        end
+		if rigHead == nil then
+			return false
+		end
 
-        local headSize = rigHead.Size
-        local sizeX, sizeY, sizeZ = headSize.X/2, headSize.Y/2, headSize.Z/2
+		local headSize = rigHead.Size
+		local sizeX, sizeY, sizeZ = headSize.X / 2, headSize.Y / 2, headSize.Z / 2
 
-        local foundGrenade = false
+		local foundGrenade = false
 
-        local function RaycastPositionToTarget(position)
-            local params = RaycastParams.new()
+		local function RaycastPositionToTarget(position)
+			local params = RaycastParams.new()
 
-            params.FilterType = Enum.RaycastFilterType.Exclude
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Bullets"))
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Visualiser"))
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Enemy Utilities"))
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("AI"))
-            params:AddToFilter(COLLECTION_SERVICE:GetTagged("Gun"))
+			params.FilterType = Enum.RaycastFilterType.Exclude
+			params:AddToFilter(Collection_Service:GetTagged("Bullets"))
+			params:AddToFilter(Collection_Service:GetTagged("Visualiser"))
+			params:AddToFilter(Collection_Service:GetTagged("Enemy Utilities"))
+			params:AddToFilter(Collection_Service:GetTagged("AI"))
+			params:AddToFilter(Collection_Service:GetTagged("Gun"))
 
-            local targetPosition
+			local targetPosition
 
-            if target:IsA("Model") then
-                local primaryPart = target.PrimaryPart
+			if target:IsA("Model") then
+				local primaryPart = target.PrimaryPart
 
-                if primaryPart == nil then
-                    return true
-                end
+				if primaryPart == nil then
+					return true
+				end
 
-                targetPosition = primaryPart.Position
-            elseif target:IsA("Part") then
-                targetPosition = target.Position
-            else
-                warn("Target is not a model/part; therefore it is impossible to find its position. Target class: " .. target.ClassName)
-                return true
-            end
+				targetPosition = primaryPart.Position
+			elseif target:IsA("Part") then
+				targetPosition = target.Position
+			else
+				warn(
+					"Target is not a model/part; therefore it is impossible to find its position. Target class: "
+						.. target.ClassName
+				)
+				return true
+			end
 
-            local lookAtTarget = CFrame.lookAt(position, targetPosition)
+			local lookAtTarget = CFrame.lookAt(position, targetPosition)
 
-            local ray = workspace:Raycast(position, lookAtTarget.LookVector * self.information.pathfindinginformation.VIEW_DISTANCE, params)
+			local ray = workspace:Raycast(
+				position,
+				lookAtTarget.LookVector * self.information.pathfindinginformation.viewDistance,
+				params
+			)
 
-            if not ray then
-                return false
-            end
+			if not ray then
+				return false
+			end
 
-            if ray.Instance ~= target then
-                --[[
+			if ray.Instance ~= target then
+				--[[
                 Check if what the rig sees is an enemy or not
                 ]]
-                for _, tag : string in pairs(ray.Instance:GetTags()) do
-                    if table.find(self.information.targettags, tag) then
-                        return true
-                    end
-                end
+				for _, tag: string in pairs(ray.Instance:GetTags()) do
+					if table.find(self.information.targettags, tag) then
+						return true
+					end
+				end
 
-                --[[
+				--[[
                 If that part is a part and has a model as its parent, check the parent's tags too.
                 ]]
-                if ray.Instance:FindFirstAncestorOfClass("Model") then
-                    for _, tag : string in pairs(ray.Instance:FindFirstAncestorOfClass("Model"):GetTags()) do
-                        if table.find(self.information.targettags, tag) then
-                            return true
-                        end
-                    end
-                end
+				if ray.Instance:FindFirstAncestorOfClass("Model") then
+					for _, tag: string in pairs(ray.Instance:FindFirstAncestorOfClass("Model"):GetTags()) do
+						if table.find(self.information.targettags, tag) then
+							return true
+						end
+					end
+				end
 
-                if ray.Instance:IsDescendantOf(target) == false then
-                    return false
-                end
-            end
+				if ray.Instance:IsDescendantOf(target) == false then
+					return false
+				end
+			end
 
-            return true
-        end
+			return true
+		end
 
-        for _ = 1, 10 do
-            if foundGrenade == true then
-                break
-            end
+		for _ = 1, 10 do
+			if foundGrenade == true then
+				break
+			end
 
-            foundGrenade = RaycastPositionToTarget(
-                rigHead.Position +
-                Vector3.new(
-                self.information.RANDOM:NextNumber(-1, 1) * sizeX,
-                self.information.RANDOM:NextNumber(-1, 1) * sizeY,
-                self.information.RANDOM:NextNumber(-1, 1) * sizeZ
-            ))
-        end
+			foundGrenade = RaycastPositionToTarget(
+				rigHead.Position
+					+ Vector3.new(
+						self.information.random:NextNumber(-1, 1) * sizeX,
+						self.information.random:NextNumber(-1, 1) * sizeY,
+						self.information.random:NextNumber(-1, 1) * sizeZ
+					)
+			)
+		end
 
-        if foundGrenade == false then
-            return false
-        end
+		if foundGrenade == false then
+			return false
+		end
 
-        return true
-    end
-    
-    if CanRigSeeTarget() == true then
-        return
-    end
+		return true
+	end
 
-    --[[
+	if CanRigSeeTarget() == true then
+		return
+	end
+
+	--[[
     The function that selects where the rig should move to to continue to search for the target
     ]]
-    local function SearchAlgorithm() : Vector3
-        --[[
+	local function SearchAlgorithm(): Vector3
+		--[[
         Function to choose the point where the rig should go
         ]]
-        local function ChoosePoint()
-            return self.___important.___rig.PrimaryPart.Position + Vector3.new(self.information.RANDOM:NextInteger(-10, 10), 0, self.information.RANDOM:NextInteger(-10, 10))
-        end
+		local function ChoosePoint()
+			return self._important._rig.PrimaryPart.Position
+				+ Vector3.new(
+					self.information.random:NextInteger(-10, 10),
+					0,
+					self.information.random:NextInteger(-10, 10)
+				)
+		end
 
-        --[[
+		--[[
         Function to check if the space where the point was chosen is able to be reached
         ]]
-        local function  CheckIfSpaceIsAvailable(position : Vector3)
-            local overlapParameters = OverlapParams.new()
-            overlapParameters.FilterType = Enum.RaycastFilterType.Exclude
-            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("AI"))
-            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Bullets"))
-            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Grenade"))
-            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Goal"))
-            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Visualiser"))
-            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Gun"))
-            overlapParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Enemy Utilities"))
-            overlapParameters:AddToFilter(self.___important.___rig)
+		local function CheckIfSpaceIsAvailable(position: Vector3)
+			local overlapParameters = OverlapParams.new()
+			overlapParameters.FilterType = Enum.RaycastFilterType.Exclude
+			overlapParameters:AddToFilter(Collection_Service:GetTagged("AI"))
+			overlapParameters:AddToFilter(Collection_Service:GetTagged("Bullets"))
+			overlapParameters:AddToFilter(Collection_Service:GetTagged("Grenade"))
+			overlapParameters:AddToFilter(Collection_Service:GetTagged("Goal"))
+			overlapParameters:AddToFilter(Collection_Service:GetTagged("Visualiser"))
+			overlapParameters:AddToFilter(Collection_Service:GetTagged("Gun"))
+			overlapParameters:AddToFilter(Collection_Service:GetTagged("Enemy Utilities"))
+			overlapParameters:AddToFilter(self._important._rig)
 
-            local isAreaOpen = workspace:GetPartBoundsInBox(CFrame.new(position), Vector3.new(2.5, 2.5, 2.5), overlapParameters)
+			local isAreaOpen =
+				workspace:GetPartBoundsInBox(CFrame.new(position), Vector3.new(2.5, 2.5, 2.5), overlapParameters)
 
-            if table.maxn(isAreaOpen) > 0 then
-                print("Space not available", isAreaOpen)
-                return false
-            end
+			if table.maxn(isAreaOpen) > 0 then
+				return false
+			end
 
-            local head : BasePart = self.___important.___rig:FindFirstChild("Head")
+			local head: BasePart = self._important._rig:FindFirstChild("Head")
 
-            if head == nil then
-                return true
-            end
+			if head == nil then
+				return true
+			end
 
-            local raycastParameters = RaycastParams.new()
-            raycastParameters.FilterType = Enum.RaycastFilterType.Exclude
-            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("AI"))
-            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Bullets"))
-            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Grenade"))
-            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Goal"))
-            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Visualiser"))
-            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Gun"))
-            raycastParameters:AddToFilter(COLLECTION_SERVICE:GetTagged("Enemy Utilities"))
-            raycastParameters:AddToFilter(self.___important.___rig)
+			local raycastParameters = RaycastParams.new()
+			raycastParameters.FilterType = Enum.RaycastFilterType.Exclude
+			raycastParameters:AddToFilter(Collection_Service:GetTagged("AI"))
+			raycastParameters:AddToFilter(Collection_Service:GetTagged("Bullets"))
+			raycastParameters:AddToFilter(Collection_Service:GetTagged("Grenade"))
+			raycastParameters:AddToFilter(Collection_Service:GetTagged("Goal"))
+			raycastParameters:AddToFilter(Collection_Service:GetTagged("Visualiser"))
+			raycastParameters:AddToFilter(Collection_Service:GetTagged("Gun"))
+			raycastParameters:AddToFilter(Collection_Service:GetTagged("Enemy Utilities"))
+			raycastParameters:AddToFilter(self._important._rig)
 
-            local distanceBetweenPrimaryPartAndHead = HELPER.NumberManipulation.Delta(head.Position, self.___important.___rig.PrimaryPart.Position)
+			local distanceBetweenPrimaryPartAndHead =
+				HelperModule.NumberManipulation.Delta(head.Position, self._important._rig.PrimaryPart.Position)
 
-            local lookDirection = CFrame.lookAt(head.Position, position + Vector3.new(0, distanceBetweenPrimaryPartAndHead, 0)).LookVector * HELPER.NumberManipulation.Delta(self.___important.___rig.PrimaryPart.Position, position)
+			local lookDirection = CFrame.lookAt(
+				head.Position,
+				position + Vector3.new(0, distanceBetweenPrimaryPartAndHead, 0)
+			).LookVector * HelperModule.NumberManipulation.Delta(self._important._rig.PrimaryPart.Position, position)
 
-            local isThereAWall = workspace:Raycast(head.Position, lookDirection, raycastParameters)
+			local isThereAWall = workspace:Raycast(head.Position, lookDirection, raycastParameters)
 
-            if isThereAWall then
-                print("Wall in way. Hit: " .. isThereAWall.Instance:GetFullName())
-                return false
-            end
+			if isThereAWall then
+				print("Wall in way. Hit: " .. isThereAWall.Instance:GetFullName())
+				return false
+			end
 
-            return true
-        end
+			return true
+		end
 
-        local newPosition = ChoosePoint()
+		local newPosition = ChoosePoint()
 
-        if CheckIfSpaceIsAvailable(newPosition) == false then
-            while CheckIfSpaceIsAvailable(newPosition) == false do
-                newPosition = ChoosePoint()
-                task.wait()
-            end
-        end
+		if CheckIfSpaceIsAvailable(newPosition) == false then
+			while CheckIfSpaceIsAvailable(newPosition) == false do
+				newPosition = ChoosePoint()
+				task.wait()
+			end
+		end
 
-        return newPosition
-    end
+		return newPosition
+	end
 
-    local _returnFunction
-    local promiseReturn
+	local _returnFunction
+	local promiseReturn
 
-    local tries = 0
+	local tries = 0
 
-    self.signals.___SearchBegan:Fire()
+	self.signals.SearchBegan:Fire()
 
-    while task.wait() do
-        if CanRigSeeTarget() == true then
-            self.signals.___SearchFinished:Fire("Found target")
-            return
-        end
+	while task.wait() do
+		if CanRigSeeTarget() == true then
+			self.signals.SearchFinished:Fire("Found target")
+			return
+		end
 
-        if tries >= self.information.pathfindinginformation.SEARCH_TRIES then
-            self.signals.___SearchFinished:Fire("Ran out of tries")
-            return
-        end
+		if tries >= self.information.pathfindinginformation.searchTries then
+			self.signals.SearchFinished:Fire("Ran out of tries")
+			return
+		end
 
-        tries += 1
+		tries += 1
 
-        _returnFunction, promiseReturn = HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.PathwaypointToVector3, true, self, SearchAlgorithm()), false)
+		_returnFunction, promiseReturn = HelperModule.Promises.ExceptionHandler(
+			HelperModule.Promises.PromiseHandler(self._PathwaypointToVector3, true, self, SearchAlgorithm()),
+			false
+		)
 
-        if promiseReturn.Resolved == false then
-            break
-        end
+		if promiseReturn.Resolved == false then
+			break
+		end
 
-        HELPER.Promises.ExceptionHandler(HELPER.Promises.PromiseHandler(self.MoveToWaypoints, true, self, promiseReturn.Resolve))
-    end
+		HelperModule.Promises.ExceptionHandler(
+			HelperModule.Promises.PromiseHandler(self._MoveToWaypoints, true, self, promiseReturn.Resolve)
+		)
+	end
 end
-
 
 --[[
 Starts the cycle of pathfinding for the AI.
 ]]
-function class.schema.StartPathfindingCycle(self : AIPathfindingComponent)
-    self.signals.___Changed:Fire("StartPathfindingCycle", true)
+function class.schema.StartPathfindingCycle(self: AIPathfindingComponent)
+	self.signals.Changed:Fire("StartPathfindingCycle", true)
 
-    local function Move(waypoints : {})
-        self:___CombatHandler("Move", "Grenade")
-        self:SearchCycle(waypoints)
-    end
+	local function Move(waypoints: {})
+		self:_CombatHandler("Move", "Grenade")
+		self:_SearchCycle(waypoints)
+	end
 
-    local function GetWaypoints()
-        local waypoints = self:___GetPathfindingWaypoints()
+	local function GetWaypoints()
+		local waypoints = self:_GetPathfindingWaypoints()
 
-        if table.maxn(waypoints) == 0 then
-            warn("There are no waypoints in the waypoint table.")
-            task.wait(2)
-            return
-        end
+		if table.maxn(waypoints) == 0 then
+			-- warn("There are no waypoints in the waypoint table.")
+			task.wait(2)
+			return
+		end
 
-        Move(waypoints)
-    end
+		Move(waypoints)
+	end
 
-    while self.information.___stop_pathfinding == false do
-        GetWaypoints()
-        task.wait()
-    end
+	while self.information._stop_pathfinding == false do
+		GetWaypoints()
+		task.wait()
+	end
 
-    self.signals.___Changed:Fire("StartPathfindingCycle", false)
+	self.signals.Changed:Fire("StartPathfindingCycle", false)
 end
 
+type signals = typeof(class.schema.SetUpSignals)
+type information = typeof(class.schema.SetUpInformation)
 export type AIPathfindingComponent = typeof(class.interface.new(table.unpack(...)))
 
 return class

@@ -1,6 +1,7 @@
+local _bytenet = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("ByteNet"))
 local bulletComponent = require(game:GetService("ServerStorage"):WaitForChild("Components"):WaitForChild("BulletComponent"):WaitForChild("BulletComponent"))
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("ByteNet"):WaitForChild("Packets"))
-local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
+local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
 
 local activeBullets: { [number]: { ["lookdirection"]: Vector3 } } = {}
 local totalActiveBullets = 0

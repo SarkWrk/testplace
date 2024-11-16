@@ -1,6 +1,6 @@
 local tracker : {[number] : {Part : Part, Tween : Tween}} = {}
 local helper = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("ByteNet"):WaitForChild("Packets"))
+local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
 local bulletsFolder = Instance.new("Folder")
 bulletsFolder.Name = "Bullets"
 bulletsFolder.Parent = workspace

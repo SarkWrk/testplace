@@ -1,14 +1,14 @@
 local collectionservice = game:GetService("CollectionService")
 local tagInformation = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("PositionsTrackerTagList"))
 local tagsList = collectionservice:GetAllTags()
-local catmullRomPath = require(game:GetService("ReplicatedStorage"):WaitForChild("CRSplineModules"):WaitForChild("CatmullRomPath"))
+local catmullRomPath = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("CRSplineModules"):WaitForChild("CatmullRomPath"))
 local droneModel: Model = game:GetService("ServerStorage"):WaitForChild("Drone")
 local helperModule = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local debrisService = game:GetService("Debris")
 local keyInformation = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("MissionImportantPositions")).TestPlace
 local random = Random.new()
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("ByteNet"):WaitForChild("Packets"))
-local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
+local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
 
 local dronePathSmoothening = 100
 local droneSpeed = 100
@@ -194,15 +194,14 @@ local function PositionTableIndexedByInstancePathName(positionTable)
     return updatedPositionalTable
 end
 
-local function ReportLocations(positions : {[string] : Vector3}, tag : string)
+local function ReportLocations(positions : {["Instance"] : Instance, ["Position"] : Vector3}, tag : string)
     return promises.new(function(resolve)
         local output = "Trouvé " .. tag .. ".e(s) à :"
         local addToTotalSpace = 10
-    
-        for part: string, position in pairs(positions) do
+
+        for _, index : {Instance : Instance, Position : Vector3} in pairs(positions) do
             local locatedAtPosition = ""
-            local splitString = part:split(".")
-            local name = splitString[table.maxn(splitString)]
+            local name = index.Instance.Name
             local lenName = name:len()
     
             for _ = 1, math.clamp(addToTotalSpace-lenName, 0, math.huge) do
@@ -211,7 +210,7 @@ local function ReportLocations(positions : {[string] : Vector3}, tag : string)
     
             for location : string, info : {Vector : Vector3, Range : number} in pairs(keyInformation) do
                 if location ~= "Origine" then
-                    local a = (position-info.Vector).Magnitude
+                    local a = (index.Position-info.Vector).Magnitude
     
                     if a <= info.Range then
                         locatedAtPosition = location
@@ -220,8 +219,8 @@ local function ReportLocations(positions : {[string] : Vector3}, tag : string)
             end
     
             if locatedAtPosition == "" then
-                local relAlt, altExp = helperModule.NumberManipulation.Truncate((Vector3.new(0, position.Y, 0)-Vector3.new(0, keyInformation.Origine.Y, 0)).Magnitude, 3)
-                local relDist, distExp = helperModule.NumberManipulation.Truncate((Vector3.new(position.X, 0, position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
+                local relAlt, altExp = helperModule.NumberManipulation.Truncate((Vector3.new(0, index.Position.Y, 0)-Vector3.new(0, keyInformation.Origine.Y, 0)).Magnitude, 3)
+                local relDist, distExp = helperModule.NumberManipulation.Truncate((Vector3.new(index.Position.X, 0, index.Position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
 
                 output = output .. "<br />" .. name .. " à alt. rel. : <i>" .. relAlt * 10 .. "e" .. altExp - 1
                 .. "</i> et dist. rel. : <i>" .. relDist * 10 .. "e" .. distExp - 1 .. "</i>."
@@ -232,7 +231,7 @@ local function ReportLocations(positions : {[string] : Vector3}, tag : string)
     
         packets.SendPositionalInformation.SendPositionalInformation.sendToAll(output)
 
-        resolve()
+        resolve("Sent information")
     end)
 end
 
@@ -272,7 +271,7 @@ local function FindPosition(tag : string) : {{["Position"] : Vector3, ["Instance
         return PositionTableIndexedByInstancePathName(positionalTable)
     end)
 
-    helperModule.Promises.ExceptionHandler(helperModule.Promises.PromiseHandler(ReportLocations, false, positionalInformation, tag), false)
+    helperModule.Promises.ExceptionHandler(helperModule.Promises.PromiseHandler(ReportLocations, false, positionalTable, tag))
 
     return positionalTable
 end
