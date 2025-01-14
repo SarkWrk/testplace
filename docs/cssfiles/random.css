@@ -1,9 +1,9 @@
 #Site-directory {
-    font-size: 15px;
-    a {color :rgb(74, 74, 243);}
-    position: absolute;
-    bottom: 5px;
-    left: 5px;
+    font-size: 15px !important;
+    a {color :rgb(74, 74, 243) !important;}
+    position: absolute !important;
+    bottom: 5px !important;
+    left: 5px !important;
 }
 
 #Error-404 {

@@ -10,112 +10,1251 @@
         <meta name="author" content="Zée">
         <meta name="description" content="Documentation for the 'GeneralLibrary' module script.">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="../cssfiles/base.css" rel="stylesheet"/>
+        <link href="../cssfiles/random.css" rel="stylesheet"/>
         <link href="../cssfiles/documentation.css" rel="stylesheet">
     </head>
 
-    <body id="DocumentationBody">
-        <div id="DocumentationContent">
+    <body id="DocumentationBody" style="height: 1000vh;">
+        <div class="DocumentationContent">
+            <div id="Types">
+                <h1 id="Type">
+                    Types:
+                </h1>
+
+                <div id="TypeDescription">
+                    <div id="Types.PromiseReturn">
+                        <h2>
+                            PromiseReturn
+                        </h2>
+
+                        <p1>
+                            Returned by <a href="#Promises.ExceptionHandler">*.Promises.ExceptionHandler()</a> and <a href="#Promises.PromiseHandler">*.Promises.PromiseHandler()</a>.
+                        </p1>
+
+                        <div class="NoteBox">
+                            <h1>
+                                Note:
+                            </h1>
+
+                            <ul>
+                                <li>
+                                    It is intended that <a href="https://eryn.io/roblox-lua-promise/api/">roblox-lua-promise</a> is used for this type to function.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <table class="TypeInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    .Resolve
+                                </td>
+                                <td>
+                                    any?
+                                </td>
+                                <td>
+                                    The value(s) that are resolved from the promise (if there are any).
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    .Resolved
+                                </td>
+                                <td>
+                                    boolean
+                                </td>
+                                <td>
+                                    Whether the promise resolved or not.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    .Error
+                                </td>
+                                <td>
+                                    any?
+                                </td>
+                                <td>
+                                    The error that was returned from the promise (if there is any).
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    .Reject
+                                </td>
+                                <td>
+                                    any?
+                                </td>
+                                <td>
+                                    The value(s) that are rejected from the promise (if there are any).
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    .Failure
+                                </td>
+                                <td>
+                                    any?
+                                </td>
+                                <td>
+                                    Any values that are returned from the <a href="https://eryn.io/roblox-lua-promise/api/Promise/#andThen">failureHandler</a> (if there are any).
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    .Promise
+                                </td>
+                                <td>
+                                    (...any) -> ...any
+                                </td>
+                                <td>
+                                    The promise that all the values came from. This value can be used to call the promise again in the case of not resolving.
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div id="NumberManipulation">
-                <h2 id="Documentation-PathTo">
+                <h1 id="Documentation-PathTo">
                     [path_to_module].NumberManipulation.*
-                </h2>
+                </h1>
 
                 <div id="Documentation-Functions">
                     <div id="NumberManipulation.oom">
                         <h2>
-                            *:oom()
+                            *.oom(<i>input</i>) : <i>number</i>
                         </h2>
 
-                        <div class="box" style="color: white;">
-                            <p1>
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis ipsam nemo sit illum harum eveniet dolor earum natus quam. Quaerat ex aut officiis soluta eos ad ab eligendi, magnam nulla.
-                            </p1>
-                        </div>
+                        <p1>
+                            Takes a number and finds the order of magnitude of the number. Returns a number.
+                        </p1>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    input
+                                </td>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    The number that the order of magnitude should be found of.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <br>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    The order of magnitude of the number.
+                                </td>
+                            </tr>
+                        </table>
                     </div>
 
                     <div id="NumberManipulation.Round">
                         <h2>
-                            *:Round()
+                            *.Round(<i>input</i>, <i>places?</i>) : <i>number</i>
                         </h2>
+
+                        <p1>
+                            Takes a number and rounds it to the nearest integer. An optional <code>places</code> overload can be specified to round to a specific amount of decimal places.
+                            Rounding to a negative amount of decimal places may result in unexpected behaviour and is recommended not to be done.
+                        </p1>
+
+                        <div class="NoteBox">
+                            <h1>
+                                Note:
+                            </h1>
+
+                            <p1>
+                                <ul>
+                                    <li>
+                                        This function relies on <a href="#NumberManipulation.oom">*.NumberManipulation.oom:()</a> to function.
+                                    </li>
+                                </ul>
+                            </p1>
+                        </div>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    input
+                                </td>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    The number that should be rounded.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    places
+                                </td>
+                                <td>
+                                    number?
+                                </td>
+                                <td>
+                                    How many decimal places to round <code>input</code> to.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <br>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    <code>input</code> rounded to the nearest integer unless <code>places</code> is specified.
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                     
                     <div id="NumberManipulation.Truncate">
                         <h2>
-                            *:Truncate()
+                            *.Truncate(<i>input</i>, <i>places</i>) : (<i>leading</i>, <i>magnitude</i>)
                         </h2>
+
+                        <p1>
+                            Truncates a number to <code>places</code> amount of leading digits.
+                            Returns a tuple of the leading digits of the truncated number and its order of magnitude.
+                        </p1>
+
+                        <div class="NoteBox">
+                            <h1>
+                                Note:
+                            </h1>
+
+                            <p1>
+                                <ul>
+                                    <li>
+                                        <code>leading</code> is returned as the leading digits x10^-1.
+                                    </li>
+                                </ul>
+                                <ul>
+                                    <li>
+                                        This function relies on <a href="#NumberManipulation.oom">*.NumberManipulation.oom:()</a> to function.
+                                    </li>
+                                </ul>
+                            </p1>
+                        </div>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    input
+                                </td>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    The number that should be truncated.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    places
+                                </td>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    How many leading digits <code>input</code> should be truncated to.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    leading
+                                </td>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    The leading digits of the truncated number. <b><i>Note: This value is x10^-1</i></b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    magnitude
+                                </td>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    The order of magnitude of the truncated number.
+                                </td>
+                            </tr>
+                        </table>
                     </div>
 
                     <div id="NumberManipulation.Delta">
                         <h2>
-                            *:Delta()
+                            *.Delta(<i>initial</i>, <i>final</i>) : <i>number</i>
                         </h2>
+
+                        <p1 id="TypeReference">
+                            Finds the difference between two <code>number</code>s or two <code>Vector3</code>s.
+                            This function is a recreation of Δx.
+                        </p1>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    initial
+                                </td>
+                                <td>
+                                    number OR Vector3
+                                </td>
+                                <td>
+                                    The initial value/position.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    final
+                                </td>
+                                <td>
+                                    number OR Vector3
+                                </td>
+                                <td>
+                                    The final value/position.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    number
+                                </td>
+                                <td>
+                                    The difference between <code>initial</code> and <code>final</code>.
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
     
             <div id="Conversions">
-                <h2 id="Documentation-PathTo">
+                <h1 id="Documentation-PathTo">
                     [path_to_module].Conversions.*
-                </h2>
+                </h1>
 
                 <div id="Documentation-Functions">
                     <div id="Conversions.StringToVector3">
                         <h2>
-                            *:StringToVector3()
+                            *.StringToVector3(<i>stringEquivilant</i>, <i>separator</i>) : <i>Vector3</i>
                         </h2>
+
+                        <p1>
+                            Converts a <span id="TypeReference"><code>string</code></span> to a <span id="TypeReference"><code>Vector3</code></span>.
+                        </p1>
+
+                        <div class="NoteBox">
+                            <h1>
+                                Note:
+                            </h1>
+
+                            <ul>
+                                <li>
+                                    <code>stringEquivilant</code> needs to follow this format: <i>x-component</i><code>separator</i>
+                                    </code><i>y-component</i><code>separator</code><i>z-component</i>.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    stringEquivilant
+                                </td>
+                                <td>
+                                    string
+                                </td>
+                                <td>
+                                    A <span id="TypeReference"><code>string</code></span> representation of a <span id="TypeReference"><code>Vector3</code></span>.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    separator
+                                </td>
+                                <td>
+                                    string
+                                </td>
+                                <td>
+                                    The character(s) that seperate each position component in <code>stringEquivilant</code>.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Vector3
+                                </td>
+                                <td>
+                                    Vector3
+                                </td>
+                                <td>
+                                    The resulting <span id="TypeReference"><code>Vector3</code></span> from combining all the component parts from <code>stringEquivilant</code>.
+                                </td>
+                            </tr>
+                        </table>
                     </div>
 
                     <div id="Conversions.Vector3ToCFrame">
                         <h2>
-                            *:Vector3ToCFrame()
+                            *.Vector3ToCFrame(<i>position</i>, <i>rotation?</i>) : <i>CFrame</i>
                         </h2>
+
+                        <p1>
+                            Creates a new <span id="TypeReference"><code>CFrame</code></span> using <code>position</code> as the position of the CFrame.
+                            An optional <code>rotation</code> overload can be specified to add a rotation to the <span id="TypeReference"><code>CFrame</code></span>.
+                        </p1>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    position
+                                </td>
+                                <td>
+                                    Vector3
+                                </td>
+                                <td>
+                                    The positional component that the resulting CFrame should have.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    rotation
+                                </td>
+                                <td>
+                                    Vector3?
+                                </td>
+                                <td>
+                                    An optional overload to specify the rotation the CFrame should have.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    CFrame
+                                </td>
+                                <td>
+                                    CFrame
+                                </td>
+                                <td>
+                                    A CFrame with position <code>position</code>. If <code>rotation</code> is specified, it will have that rotation applied to it.
+                                </td>
+                            </tr>
+                        </table>
                     </div>
 
                     <div id="Conversions.Vector3ToString">
                         <h2>
-                            *:Vector3ToString()
+                            *.Vector3ToString(<i>vector</i>, <i>separator</i>, <i>round?</i>, <i>places?</i>) : <i>string</i>
                         </h2>
+
+                        <p1>
+                            Converts a <span id="TypeReference"><code>Vector3</code></span> to a <span id="TypeReference"><code>string</code></span>,
+                            separating each component with <code>separator</code>. An optional <code>round</code> overload can be added to
+                            specify whether each component should be rounded. If <code>round</code> is specified, <code>places</code> can be
+                            added to specify to how many places each component should be rounded to.
+                        </p1>
+
+                        <div class="NoteBox">
+                            <h1>
+                                Note:
+                            </h1>
+
+                            <ul>
+                                <li>
+                                    This function relies on <a href="#NumberManipulation.Round">*.NumberManipulation.Round()</a> to function.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    vector
+                                </td>
+                                <td>
+                                    Vector3
+                                </td>
+                                <td>
+                                    The <span id="TypeReference"><code>Vector3</code></span> that should be turned into a <span id="TypeReference"><code>string</code></span>.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    separator
+                                </td>
+                                <td>
+                                    string
+                                </td>
+                                <td>
+                                    A <span id="TypeReference"><code>string</code></span> that separates each component of the <span id="TypeReference"><code>Vector3</code></span>.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    round
+                                </td>
+                                <td>
+                                    boolean?
+                                </td>
+                                <td>
+                                    Whether each component of <code>vector</code> should be rounded.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    places
+                                </td>
+                                <td>
+                                    number?
+                                </td>
+                                <td>
+                                    How many places to round each component to. <i><b>Note:</b></i> only takes effect if <code>round</code> is <span id="TypeReference"><code>true</code></span>.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    string
+                                </td>
+                                <td>
+                                    string
+                                </td>
+                                <td>
+                                    A string formatted as: <code>vector</code>.X<code>separator</code><code>vector</code>.Y<code>separator</code><code>vector</code>.Z.
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                     
                     <div id="Conversions.CFrameAnglesToVector3">
                         <h2>
-                            *:CFrameAnglesToVector3()
+                            *.CFrameAnglesToVector3(<i>converted</i>, <i>round?</i>, <i>places?</i>) : <i>Vector3</i>
                         </h2>
+
+                        <p1>
+                            Converts a <span id="TypeReference"><code>CFrame</code>'s rotation into a <code>Vector3</code>
+                                where each of the components relate to the rotational component of the <code>CFrame</code></span>.
+                            If <code>round</code> is added, the rotational components will be rounded. If <code>round</code> is 
+                            added, then <code>places</code> can be added to specify how many places to round to.
+                        </p1>
+
+                        <div class="NoteBox">
+                            <h1>
+                                Note:
+                            </h1>
+
+                            <ul>
+                                <li>
+                                    This function relies on <a href="#NumberManipulation.Round">*.NumberManipulation.Round()</a> to function.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    converted
+                                </td>
+                                <td>
+                                    CFrame
+                                </td>
+                                <td >
+                                    The <span id="TypeReference"><code>CFrame</code></span> who's rotation should be converted into a <span id="TypeReference"><code>Vector3</code></span>.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    round
+                                </td>
+                                <td>
+                                    boolean?
+                                </td>
+                                <td>
+                                    Whether each component of the rotation of <code>converted</code> should be rounded.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    places
+                                </td>
+                                <td>
+                                    number?
+                                </td>
+                                <td>
+                                    How many places to round <code>converted</code> to. <b><i>Note:</i></b> only functions if <code>round</code> is <span id="TypeReference"><code>true</code></span>.
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Vector3
+                                </td>
+                                <td>
+                                    Vector3
+                                </td>
+                                <td>
+                                    A <span id="TypeReference"><code>Vector3</code></span> with components of the rotational components of <code>converted</code>.
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
     
             <div id="TableManipulation">
-                <h2 id="Documentation-PathTo">
+                <h1 id="Documentation-PathTo">
                     [path_to_module].TableManipulation.*
-                </h2>
+                </h1>
 
                 <div id="Documentation-Functions">
                     <div id="TableManipulation.CreateRelativeTable">
                         <h2>
-                            *:CreateRelativeTable()
+                            *.CreateRelativeTable(<i>tableOfRelativePositions</i>, <i>startingPoint?</i>) : <i>{[number] : {[number] : {Distance : number, Index : number}}}</i>
                         </h2>
+
+                        <p1>
+                            Creates a <span id="TypeReference"><code>table</code></span> where each index is a position in <code>tableOfRelativePositions</code> 
+                            with a subtable with values <code>Distance</code> and <code>Index</code> that refer to the distance away the parent index is from the subindex.
+                            <code>startingPoint</code> can be added to insert another point into the table.
+                        </p1>
+
+                        <div class="NoteBox">
+                            <h1>
+                                Note:
+                            </h1>
+
+                            <ul>
+                                <li>
+                                    <code>startingPoint</code> is supposed to be used in tandum with <a href="#TableManipulation.OrderRelativeTable">*.TableManipulation.OrderRelatoveTable()</a>.
+                                </li>
+                                <li>
+                                    This function relies on <a href="#NumberManipulation.Delta">*.NumberManipulation.Delta()</a> to function.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    tableOfRelativePositions
+                                </td>
+                                <td>
+                                    {[number] : Vector3}
+                                </td>
+                                <td>
+                                    A numerically indexed table of <span id="TypeReference"><code>Vector3</code></span>s.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    startingPoint
+                                </td>
+                                <td>
+                                    Vector3
+                                </td>
+                                <td>
+                                    A point to insert as the first index of the returned table.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable" id="TableManipulation.CreateRelativeTable.Return">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    table
+                                </td>
+                                <td>
+                                    {
+                                    <br>
+                                    ― [number1] : {
+                                    <br>
+                                    ―― [number2] : {
+                                    <br>
+                                    ――― Distance : number,
+                                    <br>
+                                    ――― Index : number,
+                                    <br>
+                                    ―― },
+                                    <br>
+                                    ― },
+                                    <br>
+                                    }
+                                </td>
+                                <td>
+                                    An indexed (<code>number1</code>) table with values (<code>number2</code>) that are tables. <code>Index</code> refers a different index in the 
+                                    parent table and <code>Distance</code> is the distance between both points. <code>number1</code> and <code>Index</code> refer to indexes in 
+                                    <code>tableOfRelativePositions</code>.
+
+                                    <div class="NoteBox">
+                                        <h1>
+                                            Note:
+                                        </h1>
+                                        
+                                        <ul>
+                                            <li>
+                                                The return of this function is extremely hard to describe. It is recommended that you play around with what is returned to gain
+                                                a better understanding of this function.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
 
                     <div id="TableManipulation.OrderRelativeTable">
                         <h2>
-                            *:OrderRelativeTable()
+                            *.OrderRelativeTable(<i>tableOfRelativeDistances</i>) : <i>{[number] : {Distance : number, Index : number}}</i>
+                        </h2>
+
+                        <p1>
+                            Orders a table formatted in the same way as the table returned from <a href="#TableManipulation.CreateRelativeTable">*.TableManipulation.CreateRelativeTable()</a>
+                            based off which values are closest to the starting index.
+                        </p1>
+
+                        <div class="NoteBox">
+                            <h1>
+                                Note:
+                            </h1>
+
+                            <ul>
+                                <li>
+                                    This function is meant to work in tandum with <a href="#TableManipulation.CreateRelativeTable">*.TableManipulation.CreateRelativeTable()</a>.
+                                    It is expected that the return from CreateRelativeTable is fed directly into this function. Alternatively, a table can be fed into this function
+                                    that mimics the return from CreateRelativeTable.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    tableOfRelativeDistances
+                                </td>
+                                <td>
+                                    {
+                                    <br>
+                                    ― [number1] : {
+                                    <br>
+                                    ―― [number2] : {
+                                    <br>
+                                    ――― Distance : number,
+                                    <br>
+                                    ――― Index : number,
+                                    <br>
+                                    ―― },
+                                    <br>
+                                    ― },
+                                    <br>
+                                    }
+                                </td>
+                                <td>
+                                    Please refer to <a href="#TableManipulation.CreateRelativeTable.Return">here</a> for more information.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    table
+                                </td>
+                                <td>
+                                    {
+                                    <br>
+                                    ― [number1] : {
+                                    <br>
+                                    ―― Distance : number,
+                                    <br>
+                                    ―― Index : number,
+                                    <br>
+                                    ― },
+                                    <br>
+                                    }
+                                </td>
+                                <td>
+                                    A table based off the first index in <code>tableOfRelativeDistances</code>. <code>number1</code> refers to what place in the order <code>Index</code>
+                                    is in. <span style="color: red;"><i><b>Note this may be incorrect:</b></i></span> <code>Distance</code> refers to the distance between 
+                                    <code>Index</code> and the previous position.
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="Promises">
+                <h1 id="Documentation-PathTo">
+                    [path_to_module].Promises.*
+                </h1>
+
+                <div id="Documentation-Functions">
+                    <div id="Promises.ExceptionHandler">
+                        <h2>
+                            *.ExceptionHandler(<i>returnedFromPromise</i>, <i>reportSuccess?</i>) : <i>((...any) -> ...any, <a href="#Types.PromiseReturn">PromiseReturn</a></i>)
+                        </h2>
+
+                        <p1>
+                            An exception handler that can be wrapped around <a href="#Promises.PromiseHandler">*.Promises.PromiseHandler()</a> to handle any exceptions that occur from the wrapped <span id="TypeReference"><code>Promise</code></span>.
+                        </p1>
+
+                        <h3>
+                            Inputs:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    returnedFromPromise
+                                </td>
+                                <td>
+                                    <a href="#Types.PromiseReturn">PromiseReturn</a>
+                                </td>
+                                <td>
+                                    A <a href="#Types.PromiseReturn">PromiseReturn</a> created based off a promise. (Re: <a href="#Promises.PromiseHandler">*.Promises.PromiseHandler()</a> for more information.)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    reportSuccess
+                                </td>
+                                <td>
+                                    boolean?
+                                </td>
+                                <td>
+                                    Whether the <span id="TypeReference"><code><a href="#Types.PromiseReturn">PromiseReturn</a>.Success</code></span> should be printed into the console (if not nil).
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3>
+                            Returns:
+                        </h3>
+
+                        <table class="FunctionInformationTable">
+                            <tr>
+                                <th>
+                                    Value
+                                </th>
+                                <th>
+                                    Type
+                                </th>
+                                <th>
+                                    Explanation
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    promise
+                                </td>
+                                <td>
+                                    (...any) -> ...any
+                                </td>
+                                <td>
+                                    The <span id="TypeReference"><code>Promise</code></span> that the <span id="TypeReference"><code><a href="#Types.PromiseReturn">PromiseReturn</a></code></span> resulted from.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    PromiseReturn
+                                </td>
+                                <td>
+                                    PromiseReturn
+                                </td>
+                                <td>
+                                    The <span id="TypeReference"><code><a href="#Types.PromiseReturn">PromiseReturn</a></code></span> that was inputted into the function (<code>returnedFromPromise</code>).
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+    
+                    <div id="Promises.PromiseHandler">
+                        <h2>
+                            *.PromiseHandler()
                         </h2>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="Documentation-NavBar">
+        <div class="Documentation-NavBar">
             <p1>
                 GeneralLibrary
             </p1>
             <p2>
                 <ul>
                     <li>
-                        <a href="#NumberManipulation">
-                            <u><b>NumberConversions</b></u>
+                        <a href="#Types" style="font-style: normal;"><b>Types</b></a>
+                        <ul>
+                            <li>
+                                <a href="#Types.PromiseReturn">PromiseReturn</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#NumberManipulation" style="font-style: normal;">
+                            <b>NumberConversions</b>
                         </a>
                         <ul>
                             <li>
@@ -124,19 +1263,19 @@
 
                                     <ul>
                                         <li>
-                                            <a href="#NumberManipulation.oom"><u><i>oom()</i></u></a>
+                                            <a href="#NumberManipulation.oom">oom()</a>
                                         </li>
 
                                         <li>
-                                            <a href="#NumberManipulation.Round"><u><i>Round()</i></u></a>
+                                            <a href="#NumberManipulation.Round">Round()</a>
                                         </li>
 
                                         <li>
-                                            <a href="#NumberManipulation.Truncate"><u><i>Truncate()</i></u></a>
+                                            <a href="#NumberManipulation.Truncate">Truncate()</a>
                                         </li>
                                         
                                         <li>
-                                            <a href="#NumberManipulation.Delta"><u><i>Delta()</i></u></a>
+                                            <a href="#NumberManipulation.Delta">Delta()</a>
                                         </li>
                                     </ul>
                                 </p3>
@@ -144,8 +1283,8 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="#Conversions">
-                            <u><b>Conversions</b></u>
+                        <a href="#Conversions" style="font-style: normal;">
+                            <b>Conversions</b>
                         </a>
                         <ul>
                             <p3>
@@ -153,19 +1292,19 @@
                                     Functions:
                                     <ul>
                                         <li>
-                                            <a href="#Conversions.StringToVector3"><u><i>StringToVector3()</i></u></a>
+                                            <a href="#Conversions.StringToVector3">StringToVector3()</a>
                                         </li>
 
                                         <li>
-                                            <a href="#Conversions.Vector3ToCFrame"><u><i>Vector3ToCFrame()</i></u></a>
+                                            <a href="#Conversions.Vector3ToCFrame">Vector3ToCFrame()</a>
                                         </li>
 
                                         <li>
-                                            <a href="#Conversions.Vector3ToString"><u><i>Vector3ToString()</i></u></a>
+                                            <a href="#Conversions.Vector3ToString">Vector3ToString()</a>
                                         </li>
 
                                         <li>
-                                            <a href="#Conversions.CFrameAnglesToVector3"><u><i>CFrameAnglesToVector3()</i></u></a>
+                                            <a href="#Conversions.CFrameAnglesToVector3">CFrameAnglesToVector3()</a>
                                         </li>
                                     </ul>
                                 </li>
@@ -173,8 +1312,8 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="#TableManipulation">
-                            <u><b>TableManipulation</b></u>
+                        <a href="#TableManipulation" style="font-style: normal;">
+                            <b>TableManipulation</b>
                         </a>
                         <ul>
                             <p3>
@@ -182,11 +1321,31 @@
                                     Functions:
                                     <ul>
                                        <li>
-                                            <a href="#TableManipulation.CreateRelativeTable"><u><i>CreateRelativeTable()</i></u></a>
+                                            <a href="#TableManipulation.CreateRelativeTable">CreateRelativeTable()</a>
                                         </li>
 
                                         <li>
-                                            <a href="#TableManipulation.OrderRelativeTable"><u><i>OrderRelativeTable()</i></u></a>
+                                            <a href="#TableManipulation.OrderRelativeTable">OrderRelativeTable()</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </p3>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#Promises" style="font-style: normal;">
+                            <u><b>Promises</b></u>
+                        </a>
+                        <ul>
+                            <p3>
+                                <li>
+                                    Functions:
+                                    <ul>
+                                        <li>
+                                            <a href="#Promises.ExceptionHandler">ExceptionHandler()</a>
+                                        </li>
+                                        <li>
+                                            <a href="#Promises.PromiseHandler">PromiseHandler()</a>
                                         </li>
                                     </ul>
                                 </li>
@@ -195,10 +1354,10 @@
                     </li>
                 </ul>
             </p2>
-        </div>
 
-        <div id="Site-directory">
-            Lost? <a href="../testplace/site-directory"><i>Consult the site-directory.</i></a>
+            <div id="Site-directory">
+                Lost? <a href="../testplace/site-directory"><i>Consult the site-directory.</i></a>
+            </div>
         </div>
     </body>
 </html>

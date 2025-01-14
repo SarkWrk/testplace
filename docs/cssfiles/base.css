@@ -2,13 +2,3 @@
     background-color: black;
     color: white;
 }
-
-.box {
-    outline-style: outset;
-    outline-width: 5px;
-    outline-color: white;
-
-    box-sizing: content-box;
-    max-width: fit-content;
-    max-height: fit-content;
-}
