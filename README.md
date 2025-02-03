@@ -11,4 +11,4 @@ Check out the documentation [here](<https://sarkwrk.github.io/testplace>)!
 > 
 > Additional credit is printed out in-game from the src/StarterPlayer/StarterCharacterScripts/ClientScripts/ThanksTo.client.luau script.
 
-[This work](<https://github.com/SarkWrk/testplace/tree/main>) by [Zée](<https://github.com/SarkWrk>) is licensed under [CC BY-SA 4.0](<https://creativecommons.org/licenses/by-sa/4.0/>).
+[This work](<https://github.com/SarkWrk/testplace/tree/main>) by [Zèe](<https://github.com/SarkWrk>) is licensed under [CC BY-SA 4.0](<https://creativecommons.org/licenses/by-sa/4.0/>).
