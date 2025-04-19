@@ -177,25 +177,15 @@ Basic handler for firing events. Used as a wrapper for event firing.
 ]]
 function class.schema._EventWrapper(self : AIPathfindingComponent, from: string, eventName : string?, ...)
 	local extraInformation = ...
+
 	self.signals.Changed:Fire(from, extraInformation)
 
 	if eventName then
-		local _, failure = pcall(function()
-			self.signals[eventName]:Fire(extraInformation)
-		end)
-	
-		if failure then
-			local accetablePrintTypes = {
-				"string",
-				"number"
-			}
-	
-			if table.find(accetablePrintTypes, typeof(extraInformation)) then
-				warn("Could not send " .. extraInformation .. " through '" .. eventName .. "' because the event does not exist. Called from: " .. from)
-			else
-				warn("Could not send " .. typeof(extraInformation) .. " through '" .. eventName .. "' because the event does not exist. Called from: " .. from)
-			end
+		if typeof(self.signals[eventName]) == nil then
+			self.signals[eventName] = Fast_Signal.new()
 		end
+
+		self.signals[eventName]:Fire(extraInformation)
 	end
 end
 
@@ -383,6 +373,7 @@ function class.schema.combatHandler._Main(
 	want: "Halt" | "Grenade"
 ): boolean | string
 	self._EventWrapper(self, "combatHandler._Main", nil, fromFunction, want)
+	
 	local function Halt()
 		if self.information.combatinformation._spotted_enemy == false then
 			return false
@@ -404,7 +395,7 @@ function class.schema.combatHandler._Main(
 				break
 			end
 
-			self.combatHandler._Main("CombatHandler", "Grenade")
+			self.combatHandler._Main(self, "CombatHandler", "Grenade")
 			task.wait()
 		end
 
@@ -1068,6 +1059,10 @@ function class.schema._MoveToWaypoints(self: AIPathfindingComponent, waypoints: 
 			end
 		end)
 
+		if not waypoints then
+			reject("Waypoint table is nil.")
+		end
+
 		if table.maxn(waypoints) == 0 then
 			reject("There are no waypoints in the waypoint table.")
 		end
@@ -1115,10 +1110,10 @@ function class.schema._MoveToWaypoints(self: AIPathfindingComponent, waypoints: 
 
 			humanoid.MoveToFinished:Wait()
 
-			_halted = self.combatHandler._Main("Move", "Halt")
+			_halted = self.combatHandler._Main(self, "Move", "Halt")
 
-			if  avoidingGrenade == false then
-				avoidedGrenade = self.combatHandler._Main("Move", "Grenade")
+			if avoidingGrenade == false then
+				avoidedGrenade = self.combatHandler._Main(self, "Move", "Grenade")
 			end
 
 			if avoidedGrenade == true then
@@ -1394,7 +1389,7 @@ function class.schema.StartPathfindingCycle(self: AIPathfindingComponent)
 	self._EventWrapper(self, "StartPathfindingCycle", nil, true)
 
 	local function Move(waypoints: {})
-		self.combatHandler._Main("Move", "Grenade")
+		self.combatHandler._Main(self, "Move", "Grenade")
 		self:_SearchCycle(waypoints)
 	end
 

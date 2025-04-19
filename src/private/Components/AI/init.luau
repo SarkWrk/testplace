@@ -7,7 +7,7 @@ local types = require(game:GetService("ServerStorage"):WaitForChild("Modules"):W
 
 function class.interface.New(info: types.AIConfigurations)
 	local self = setmetatable({}, class.metatable)
-	self.Combat = require(script.Parent:WaitForChild("CombatAI")).interface.New(
+	self.Combat = require(script:WaitForChild("CombatAI")).interface.New(
 		info.owner,
 		info.rig,
 		info.combatInformation,
@@ -17,7 +17,7 @@ function class.interface.New(info: types.AIConfigurations)
 		info.firedEvent,
 		info.difficulty
 	)
-	self.Pathfinding = require(script.Parent:WaitForChild("PathfindingAIOld")).interface.New(
+	self.Pathfinding = require(script:WaitForChild("PathfindingAIOld")).interface.New(
 		info.owner,
 		info.rig,
 		info.pathfindingInformation,

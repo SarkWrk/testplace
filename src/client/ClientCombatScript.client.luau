@@ -1,4 +1,9 @@
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
+local bytenet = game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet")
+
+require(bytenet:WaitForChild("ByteNet"))
+
+local _ = require(bytenet.ByteNet)
+local packets = require(bytenet:WaitForChild("Packets"))
 local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
 local helper = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local camera = workspace.CurrentCamera
@@ -21,7 +26,7 @@ function SendBulletInformation()
 		})
 		lastFired = tick()
 
-		resolve()
+		resolve("Fired bullet")
 	end)
 end
 
@@ -30,7 +35,7 @@ function SendArmedInformation(status : boolean)
 		packets.ArmClient.ArmClient.send(status)
 		safetyOff = status
 
-		resolve()
+		resolve("Armed status: " .. tostring(status))
 	end)
 end
 
@@ -45,24 +50,24 @@ game:GetService("UserInputService").InputBegan:Connect(function(input : InputObj
 				return
 			end
 			
-			helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendArmedInformation, true, true))
+			helper.Promises.PromiseHandler(SendArmedInformation, true, true):ExceptionHandler()
 		end
 		
-		helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendBulletInformation, false), true)
+		helper.Promises.PromiseHandler(SendBulletInformation, true):ExceptionHandler()
 		
 		task.wait(0.15)
 		
 		while mouseDown == true do
-			helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendBulletInformation, false), true)
+			helper.Promises.PromiseHandler(SendBulletInformation, true):ExceptionHandler()
 			task.wait(0.1)
 		end
-		
+
 	elseif input.KeyCode == Enum.KeyCode.R then
 		if safetyOff == false then
 			setArmedManually = true
-			helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendArmedInformation, false, true))
+			helper.Promises.PromiseHandler(SendArmedInformation, false, true):ExceptionHandler()
 		else
-			helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendArmedInformation, false, false))
+			helper.Promises.PromiseHandler(SendArmedInformation, false, false):ExceptionHandler()
 			setArmedManually = false
 		end
 	end
@@ -76,7 +81,7 @@ end)
 
 while task.wait() do
 	if safetyOff == true and tick()-lastFired >= 0.5 and mouseDown == false and setArmedManually == false then
-		helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendArmedInformation, true, false))
+		helper.Promises.PromiseHandler(SendArmedInformation, true, false):ExceptionHandler()
 	end
 	
 	script:SetAttribute("Safety", not safetyOff)
