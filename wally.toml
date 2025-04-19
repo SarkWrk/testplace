@@ -1,0 +1,12 @@
+[package]
+name = "pengu/testplace"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+private = true
+
+[dependencies]
+Promise = "evaera/promise@4.0.0"
+FastSignal = "lucasmzreal/fastsignal@10.3.2"
+ByteNet = "ffrostflame/bytenet@0.4.6"
+Vide = "centau/vide@0.3.1"
