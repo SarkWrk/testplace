@@ -1,8 +1,8 @@
-require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("ByteNet"))
+require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("ByteNet"))
 
 local bulletComponent = require(game:GetService("ServerStorage"):WaitForChild("Components"):WaitForChild("BulletComponent"):WaitForChild("BulletComponent"))
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
-local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("ByteNetPackets"))
+local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Promise"))
 
 local activeBullets: { [number]: { ["lookdirection"]: Vector3 } } = {}
 local totalActiveBullets = 0
@@ -10,9 +10,23 @@ local helper = require(game:GetService("ReplicatedStorage"):WaitForChild("Helper
 local maxIndex = 65535
 local start = 0
 
+type BulletInfo = {
+	Damage : number,
+	Enemy : {string},
+	IgnoreTagged : {string},
+	MoveTowards : CFrame,
+	BulletDrop : number,
+	DistanceTimeOut : number,
+	Speed : number,
+	Pierce : number,
+	PierceDamageLoss : number,
+	StartPosition : Vector3
+}
+
 local function SendToClients(
 	sendData: {
 		Index: number,
+		PierceAmount: number?,
 		Position: Vector3?,
 		EndPosition: Vector3?,
 		Speed: number?,
@@ -23,6 +37,10 @@ local function SendToClients(
 	local createdPacket = {}
 
 	createdPacket.Index = sendData.Index
+
+	if sendData.PierceAmount then
+		createdPacket.PierceAmount = sendData.PierceAmount
+	end
 
 	if sendData.Position then
 		createdPacket.PositionX = sendData.Position.X
@@ -50,7 +68,7 @@ local function SendToClients(
 		createdPacket.ID = sendData.ID
 	end
 
-	packets.SBulletCreation.BulletCreation.sendToAll(createdPacket)
+	packets.BulletCreation.ServerBulletCreation.sendToAll(createdPacket)
 end
 
 local function OpenIndexFinder(): number
@@ -90,7 +108,7 @@ local function OpenIndexFinder(): number
 	return number
 end
 
-local function BulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTagged : {string}, MoveTowards : CFrame, BulletDrop : number, DistanceTimeOut : number, Speed : number, Pierce : number, PierceDamageLoss : number, StartPosition : Vector3}, player: Player?)
+local function BulletCreation(info: BulletInfo, player: Player?)
 	return promises.new(function(resolve, _, onCancel)
 		-- Create an index in activeBullets to track the bullet thaheartbeat:Disconnect(t has been fired
 		local index = OpenIndexFinder()
@@ -113,9 +131,12 @@ local function BulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTa
 
 		local travelTime: number = helper.NumberManipulation.Delta(info.StartPosition, endPosition) / info.Speed
 
+		local pierce_amount = table.maxn(bullet.Variable.PartsPierced)
+
 		-- Prepares some data to be sent to the client for bullet creation
 		local sendInformation = {}
 		sendInformation.Index = index
+		sendInformation.PierceAmount = pierce_amount
 		sendInformation.Position = info.StartPosition
 		sendInformation.EndPosition = endPosition - Vector3.new(0, travelTime * info.BulletDrop, 0)
 		sendInformation.Speed = info.Speed
@@ -123,45 +144,50 @@ local function BulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTa
 		sendInformation.ID = playerId
 
 		task.synchronize()
-		helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(SendToClients, true, sendInformation))
+		SendToClients(sendInformation)
 
 		-- Monitor the bullet for specific information
-		heartbeat = game:GetService("RunService").Heartbeat:ConnectParallel(function()
+		heartbeat = game:GetService("RunService").Heartbeat:Connect(function()
 			activeBullets[index].lookdirection = helper.Conversions.CFrameAnglesToVector3(bullet.Variable.LookDirection)
+
+			if table.maxn(bullet.Variable.PartsPierced) ~= pierce_amount then
+				pierce_amount = table.maxn(bullet.Variable.PartsPierced)
+
+				SendToClients({ Index = index, PierceAmount = pierce_amount})
+			end
 
 			-- When the bullet is destroyed, tell the client to also destroy the bullet
 			if bullet.Variable.ToDestroy == true then
 				totalActiveBullets -= 1
 
-				task.synchronize()
-
-				SendToClients({ Index = index })
+				SendToClients({ Index = index})
 
 				activeBullets[index] = nil
 
 				heartbeat:Disconnect()
+
+				resolve()
 			end
 		end)
 
 		onCancel(function()
 			heartbeat:Disconnect()
+			SendToClients({ Index = index})
 		end)
-
-		resolve()
 	end)
 end
 
-function ClientBulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTagged : {string}, MoveTowards : CFrame, BulletDrop : number, DistanceTimeOut : number, Speed : number, Pierce : number, PierceDamageLoss : number, StartPosition : Vector3}, player: Player)
-	helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(BulletCreation, false, info, player), false)
+function ClientBulletCreation(info: BulletInfo, player: Player)
+	helper.Promises.PromiseHandler(BulletCreation, false, info, player):ExceptionHandler()
 end
 
-function ServerBulletCreation(info: {Damage : number, Enemy : {string}, IgnoreTagged : {string}, MoveTowards : CFrame, BulletDrop : number, DistanceTimeOut : number, Speed : number, Pierce : number, PierceDamageLoss : number, StartPosition : Vector3})
+function ServerBulletCreation(info: BulletInfo)
 	-- Throttle the server from creating more bullets than this amount
 	if totalActiveBullets > 1000 then
 		return
 	end
 
-	helper.Promises.ExceptionHandler(helper.Promises.PromiseHandler(BulletCreation, false, info), false)
+	helper.Promises.PromiseHandler(BulletCreation, false, info):ExceptionHandler()
 end
 
 script.Parent:BindToMessage("ServerCreate", ServerBulletCreation)

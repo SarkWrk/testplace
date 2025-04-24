@@ -1,10 +1,7 @@
-local bytenet = game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet")
+require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("ByteNet"))
+local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("ByteNetPackets"))
 
-require(bytenet:WaitForChild("ByteNet"))
-
-local _ = require(bytenet.ByteNet)
-local packets = require(bytenet:WaitForChild("Packets"))
-local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Promise"))
 local helper = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local camera = workspace.CurrentCamera
 local mouseDown = false
@@ -12,11 +9,13 @@ local safetyOff = false
 local lastFired = 0
 local setArmedManually = false
 
-function SendBulletInformation()
+local log_debug_information = false
+
+function SendBulletInformationPromise()
 	return promises.new(function(resolve)
 		local cameraRotationX, cameraRotationY, cameraRotationZ = camera.CFrame:ToEulerAnglesXYZ()
 	
-		packets.CBulletCreation.ClientBulletCreation.send({
+		packets.BulletCreation.ClientBulletCreation.send({
 			PositionX = camera.CFrame.Position.X,
 			PositionY = camera.CFrame.Position.Y,
 			PositionZ = camera.CFrame.Position.Z,
@@ -26,17 +25,33 @@ function SendBulletInformation()
 		})
 		lastFired = tick()
 
-		resolve("Fired bullet")
+		resolve("Sent request to fire bullet.")
 	end)
 end
 
-function SendArmedInformation(status : boolean)
+function SendArmedInformationPromise()
 	return promises.new(function(resolve)
-		packets.ArmClient.ArmClient.send(status)
-		safetyOff = status
+		packets.ArmClient.ArmClient.send(nil)
 
-		resolve("Armed status: " .. tostring(status))
+		resolve("Sent request to change Armed status to: " .. tostring(safetyOff) .. ".")
 	end)
+end
+
+function SendBulletInformation()
+	if log_debug_information == true then
+		print("Called SendBulletInformation.")
+	end
+
+	helper.Promises.PromiseHandler(SendBulletInformationPromise, true):ExceptionHandler(log_debug_information)
+end
+
+function SendArmedInformation()
+	if log_debug_information == true then
+		print("Called SendArmedInformation.")
+	end
+
+	safetyOff = not game:GetService("Players").LocalPlayer.Character:GetAttribute("Armed")
+	helper.Promises.PromiseHandler(SendArmedInformationPromise, false):ExceptionHandler(log_debug_information)
 end
 
 game:GetService("UserInputService").InputBegan:Connect(function(input : InputObject)
@@ -50,24 +65,24 @@ game:GetService("UserInputService").InputBegan:Connect(function(input : InputObj
 				return
 			end
 			
-			helper.Promises.PromiseHandler(SendArmedInformation, true, true):ExceptionHandler()
+			SendArmedInformation()
 		end
-		
-		helper.Promises.PromiseHandler(SendBulletInformation, true):ExceptionHandler()
+
+		SendBulletInformation()
 		
 		task.wait(0.15)
 		
 		while mouseDown == true do
-			helper.Promises.PromiseHandler(SendBulletInformation, true):ExceptionHandler()
+			SendBulletInformation()
 			task.wait(0.1)
 		end
 
 	elseif input.KeyCode == Enum.KeyCode.R then
 		if safetyOff == false then
 			setArmedManually = true
-			helper.Promises.PromiseHandler(SendArmedInformation, false, true):ExceptionHandler()
+			SendArmedInformation()
 		else
-			helper.Promises.PromiseHandler(SendArmedInformation, false, false):ExceptionHandler()
+			SendArmedInformation()
 			setArmedManually = false
 		end
 	end
@@ -81,8 +96,6 @@ end)
 
 while task.wait() do
 	if safetyOff == true and tick()-lastFired >= 0.5 and mouseDown == false and setArmedManually == false then
-		helper.Promises.PromiseHandler(SendArmedInformation, true, false):ExceptionHandler()
+		SendArmedInformation()
 	end
-	
-	script:SetAttribute("Safety", not safetyOff)
 end

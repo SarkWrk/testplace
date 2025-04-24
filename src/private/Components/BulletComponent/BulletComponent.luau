@@ -73,7 +73,18 @@ function class.schema.VariableInformation(information:{ StartPosition: Vector3 }
 	return variable
 end
 
--- Damages a hit part
+--[[
+Things related to pierce functionality
+]]
+function class.schema.PierceFunctions(self: Bullet, piercedPart: Part|Model)
+	self.Variable.PartsPierced[table.maxn(self.Variable.PartsPierced) + 1] = piercedPart
+
+	return
+end
+
+--[[
+Damages a hit part
+]]
 function class.schema.DamageFunction(self: Bullet, hitPart: Part): nil
 	task.desynchronize()
 
@@ -114,8 +125,8 @@ function class.schema.DamageFunction(self: Bullet, hitPart: Part): nil
 
 	-- Destroys itself if it's not an enemy
 	if isEnemy == false then
+		self.PierceFunctions(self, hitPart)
 		self.SafeRemoval(self)
-		self.Variable.PartsPierced[table.maxn(self.Variable.PartsPierced)] = hitPart
 		return
 	end
 
@@ -128,8 +139,8 @@ function class.schema.DamageFunction(self: Bullet, hitPart: Part): nil
 
 	-- If there's no Humanoid, destroys itself
 	if not humanoid then
-		self.SaveRemoval(self)
-		self.Variable.PartsPierced[table.maxn(self.Variable.PartsPierced)] = hitPart
+		self.PierceFunctions(self, hitPart)
+		self.SafeRemoval(self)
 		return
 	end
 
@@ -147,13 +158,15 @@ function class.schema.DamageFunction(self: Bullet, hitPart: Part): nil
 
 	humanoid:TakeDamage(self.Information.Damage - (self.Information.Damage / 100 * defense))
 
+	self.PierceFunctions(self, hitPart)
 	self.SafeRemoval(self)
-	self.Variable.PartsPierced[table.maxn(self.Variable.PartsPierced)] = hitPart
 
 	return nil
 end
 
--- Check if the bullet has hit a part
+--[[
+Check if the bullet has hit a part
+]]
 function class.schema.HitDetection(self: Bullet): nil
 	-- Returns if the bullet has already hit something
 	if self.Variable.ToDestroy == true then
@@ -177,7 +190,9 @@ function class.schema.HitDetection(self: Bullet): nil
 	return nil
 end
 
--- Sets the CFame to look in the direction that it should be moving towards
+--[[
+Sets the CFame to look in the direction that it should be moving towards
+]]
 function class.schema.LookAtMovementDirection(self: Bullet): nil
 	self.Variable.LookDirection = CFrame.lookAt(
 		self.Variable.Position,
@@ -187,7 +202,9 @@ function class.schema.LookAtMovementDirection(self: Bullet): nil
 	return nil
 end
 
--- A function to remove all RBXScriptConnections
+--[[
+A function to remove all RBXScriptConnections
+]]
 function class.schema.RemoveRBXConnections(self: Bullet): nil
 	task.synchronize()
 	for _, v: RBXScriptConnection in pairs(self.RBXScriptConnections) do
@@ -197,7 +214,9 @@ function class.schema.RemoveRBXConnections(self: Bullet): nil
 	return nil
 end
 
--- A function to destroy the bullet
+--[[
+A function to destroy the bullet
+]]
 function class.schema.SafeRemoval(self): nil
 	if self.Variable.ToDestroy == true then
 		self.RemoveRBXConnections(self)
@@ -212,7 +231,11 @@ function class.schema.UnsafeRemoval(self): nil
 	return nil
 end
 
--- Moves the bullet and drops it every second, also destroys the bullet if it has passed main.DistanceTimeOut
+--[[
+Moves the bullet and drops it every second
+
+Also destroys the bullet if it has passed main.DistanceTimeOut
+]]
 function class.schema.Movement(self: Bullet)
 	self.LookAtMovementDirection(self)
 

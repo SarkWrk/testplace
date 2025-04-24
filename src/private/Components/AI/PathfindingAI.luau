@@ -10,9 +10,8 @@ local Collection_Service = game:GetService("CollectionService")
 -- Dependencies
 local _Types = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("Types"))
 local HelperModule = require(Replicated_Storage:WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
-local Fast_Signal = require(Replicated_Storage:WaitForChild("dependencies"):WaitForChild("FastSignal"):WaitForChild("FastSignal"))
-local Promises =
-	require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+local Fast_Signal = require(Replicated_Storage:WaitForChild("dependencies wally"):WaitForChild("FastSignal"))
+local Promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Promise"))
 
 class.interface = {}
 class.schema = {}
@@ -1282,15 +1281,23 @@ function class.schema._SearchCycle(self: AIPathfindingComponent, initialWaypoint
         Function to check if the space where the point was chosen is able to be reached
         ]]
 		local function CheckIfSpaceIsAvailable(position: Vector3)
+			local ignored_tags = {
+				"AI",
+				"Bullets",
+				"Grenade",
+				"Goal",
+				"Visualiser",
+				"Gun",
+				"Enemy Utilities",
+			}
+
 			local overlapParameters = OverlapParams.new()
 			overlapParameters.FilterType = Enum.RaycastFilterType.Exclude
-			overlapParameters:AddToFilter(Collection_Service:GetTagged("AI"))
-			overlapParameters:AddToFilter(Collection_Service:GetTagged("Bullets"))
-			overlapParameters:AddToFilter(Collection_Service:GetTagged("Grenade"))
-			overlapParameters:AddToFilter(Collection_Service:GetTagged("Goal"))
-			overlapParameters:AddToFilter(Collection_Service:GetTagged("Visualiser"))
-			overlapParameters:AddToFilter(Collection_Service:GetTagged("Gun"))
-			overlapParameters:AddToFilter(Collection_Service:GetTagged("Enemy Utilities"))
+
+			for _, tag in pairs(ignored_tags) do
+				overlapParameters:AddToFilter(Collection_Service:GetTagged(tag))
+			end
+
 			overlapParameters:AddToFilter(self._important._rig)
 
 			local isAreaOpen =
@@ -1308,13 +1315,11 @@ function class.schema._SearchCycle(self: AIPathfindingComponent, initialWaypoint
 
 			local raycastParameters = RaycastParams.new()
 			raycastParameters.FilterType = Enum.RaycastFilterType.Exclude
-			raycastParameters:AddToFilter(Collection_Service:GetTagged("AI"))
-			raycastParameters:AddToFilter(Collection_Service:GetTagged("Bullets"))
-			raycastParameters:AddToFilter(Collection_Service:GetTagged("Grenade"))
-			raycastParameters:AddToFilter(Collection_Service:GetTagged("Goal"))
-			raycastParameters:AddToFilter(Collection_Service:GetTagged("Visualiser"))
-			raycastParameters:AddToFilter(Collection_Service:GetTagged("Gun"))
-			raycastParameters:AddToFilter(Collection_Service:GetTagged("Enemy Utilities"))
+
+			for _, tag in pairs(ignored_tags) do
+				raycastParameters:AddToFilter(Collection_Service:GetTagged(tag))
+			end
+			
 			raycastParameters:AddToFilter(self._important._rig)
 
 			local distanceBetweenPrimaryPartAndHead =
@@ -1328,7 +1333,10 @@ function class.schema._SearchCycle(self: AIPathfindingComponent, initialWaypoint
 			local isThereAWall = workspace:Raycast(head.Position, lookDirection, raycastParameters)
 
 			if isThereAWall then
-				print("Wall in way. Hit: " .. isThereAWall.Instance:GetFullName())
+				if game:GetService("RunService"):IsStudio() == true then
+					print("Wall in way. Hit: " .. isThereAWall.Instance:GetFullName())
+				end
+
 				return false
 			end
 

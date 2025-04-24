@@ -1,14 +1,17 @@
 local collectionservice = game:GetService("CollectionService")
 local tagInformation = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("PositionsTrackerTagList"))
 local tagsList = collectionservice:GetAllTags()
-local catmullRomPath = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("CRSplineModules"):WaitForChild("CatmullRomPath"))
+local catmullRomPath = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("CRSplineModules"):WaitForChild("CatmullRomPath"))
 local droneModel: Model = game:GetService("ServerStorage"):WaitForChild("Drone")
 local helperModule = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local debrisService = game:GetService("Debris")
 local keyInformation = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("MissionImportantPositions")).TestPlace
 local random = Random.new()
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
-local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+
+require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("ByteNet"))
+local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("ByteNetPackets"))
+
+local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Promise"))
 
 local dronePathSmoothening = 100
 local droneSpeed = 100
@@ -196,7 +199,7 @@ end
 
 local function ReportLocations(positions : {["Instance"] : Instance, ["Position"] : Vector3}, tag : string)
     return promises.new(function(resolve)
-        local output = "Trouvé " .. tag .. ".e(s) à :"
+        local output = "Found " .. tag .. "(s) at :"
         local addToTotalSpace = 10
 
         for _, index : {Instance : Instance, Position : Vector3} in pairs(positions) do
@@ -222,10 +225,10 @@ local function ReportLocations(positions : {["Instance"] : Instance, ["Position"
                 local relAlt, altExp = helperModule.NumberManipulation.Truncate((Vector3.new(0, index.Position.Y, 0)-Vector3.new(0, keyInformation.Origine.Y, 0)).Magnitude, 3)
                 local relDist, distExp = helperModule.NumberManipulation.Truncate((Vector3.new(index.Position.X, 0, index.Position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
 
-                output = output .. "<br />" .. name .. " à alt. rel. : <i>" .. relAlt * 10 .. "e" .. altExp - 1
-                .. "</i> et dist. rel. : <i>" .. relDist * 10 .. "e" .. distExp - 1 .. "</i>."
+                output = output .. "<br />" .. name .. " at alt. rel. : <i>" .. relAlt * 10 .. "e" .. altExp - 1
+                .. "</i> and dist. rel. : <i>" .. relDist * 10 .. "e" .. distExp - 1 .. "</i>."
             else
-                output = output .. "<br />" .. name .. " à <i>" .. locatedAtPosition .. "</i>."
+                output = output .. "<br />" .. name .. " at <i>" .. locatedAtPosition .. "</i>."
             end
         end
     

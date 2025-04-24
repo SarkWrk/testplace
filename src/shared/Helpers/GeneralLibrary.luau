@@ -14,7 +14,7 @@ export type PromiseReturn = {
 	Reject : any?,
 	Failure : any?,
 	Promise : (...any) -> ...any,
-	ExceptionHandler: (PromiseRetrn: PromiseReturn,reportSuccess: boolean?) -> ((...any) -> ...any, PromiseReturn)
+	ExceptionHandler : (PromiseRetrn: PromiseReturn,reportSuccess: boolean?) -> ((...any) -> ...any, PromiseReturn)
 }
 
 --[[
@@ -36,21 +36,23 @@ The promise (first) and returnedFromPromise (second).
 ]]
 function module.Promises.ExceptionHandler(returnedFromPromise : PromiseReturn, reportSuccess : boolean?) : ((...any) -> ...any, PromiseReturn)
 	local function GetTraceback(onlyFirstTrace : boolean)
-		local traceback = debug.traceback("", 4)
-		local splitTraceback = traceback:split("\n")
+		local trace
 
 		if onlyFirstTrace == true then
-			return splitTraceback[3]
-		end
+			trace = debug.info(5, "sln")
+		else
+			local traceback = debug.traceback("", 4)
+			local splitTraceback = traceback:split("\n")
 
-		local trace = ""
+			trace = ""
 
-		for i, v in pairs(splitTraceback) do
-			if i == 1 then
-				continue
+			for i, v in pairs(splitTraceback) do
+				if i == 1 then
+					continue
+				end
+				
+				trace = trace .. "\n" .. v
 			end
-			
-			trace = trace .. "\n" .. v
 		end
 
 		return trace

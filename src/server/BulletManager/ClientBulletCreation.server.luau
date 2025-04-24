@@ -1,27 +1,35 @@
-require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("ByteNet"))
+require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("ByteNet"))
+local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("ByteNetPackets"))
 
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
 local helper = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local playerData = game:GetService("SharedTableRegistry"):GetSharedTable("TrackedPlayerData")
 
 local ignoredTagsDictionary = require(game:GetService("ServerStorage"):WaitForChild("Dictionaries"):WaitForChild("TeamTagNames"))
 
-packets.ArmClient.ArmClient.listen(function(data, player)
+local log_debug_information = false
+
+packets.ArmClient.ArmClient.listen(function(_, player)
 	local playerModel = player.Character
 
 	if not playerModel then
 		print(player.Name .. " has no player model ~ " .. debug.traceback("", 2))
 		return
 	end
-	
-	if data == true then
-		playerModel:SetAttribute("Armed", true)
-	else
-		playerModel:SetAttribute("Armed", false)
+
+	local player_armed_status = playerModel:GetAttribute("Armed")
+
+	if log_debug_information == true then
+		print(player.Name .. "'s current armed status: " .. tostring(player_armed_status) .. " | New armed status: " .. tostring(not player_armed_status))
 	end
+
+	if player_armed_status == nil then
+		player_armed_status = false
+	end
+
+	playerModel:SetAttribute("Armed", not player_armed_status)
 end)
 
-packets.CBulletCreation.ClientBulletCreation.listen(function(data, player)
+packets.BulletCreation.ClientBulletCreation.listen(function(data, player)
 	local playerModel = player.Character
 
 	if not playerModel then
@@ -94,7 +102,7 @@ packets.CBulletCreation.ClientBulletCreation.listen(function(data, player)
 		BulletDrop = 1,
 		DistanceTimeOut = 25000,
 		Speed = 100,
-		Pierce = 0,
+		Pierce = 3,
 		PierceDamageLoss = 0,
 		StartPosition = position,
 	}, player)

@@ -1,6 +1,8 @@
 Some rights are reserved, please check the liscense to see what you can/can't do when making a derivative.
 
-Check out the documentation [here](<https://sarkwrk.github.io/testplace>)!
+Check out the documentation for self-made scripts [here](<https://sarkwrk.github.io/testplace>)!
+Note that the documentation is not finished yet, and will be finished eventually™.
+
 
 > [!NOTE]
 > Portions of the code used in this project are from 3rd-party repos licensed under the MIT license.

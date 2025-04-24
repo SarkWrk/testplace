@@ -1,4 +1,4 @@
-local catmullRomPath = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("CRSplineModules"):WaitForChild("CatmullRomPath"))
+local catmullRomPath = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("CRSplineModules"):WaitForChild("CatmullRomPath"))
 
 game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("DroneDirections").OnClientEvent:Connect(function(drone : Model, positions : {number : Vector3}, droneSpeed : number, dronePathSmoothening : number)
     local path = catmullRomPath.fromPoints(positions, 0)
