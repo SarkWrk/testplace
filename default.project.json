@@ -15,7 +15,7 @@
     "ReplicatedStorage": {
       "$ignoreUnknownInstances": true,
       "$path": "src/shared",
-      "Node" : {
+      "dependencies node" : {
         "$path": "node_modules"
       },
       "dependencies wally": {

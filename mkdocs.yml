@@ -1,0 +1,56 @@
+site_name: testplace | Documentation
+site_url: https://sarkwrk.github.io/testplace/
+repo_url: https://github.com/sarkwrk/testplace
+repo_name: Sarkwrk/testplace
+edit_uri: https://github.com/sarkwrk/testplace/main/docs/
+theme:
+  name: material
+  icon:
+    logo: octicons/reply-24
+  font:
+    text: Open Sans
+  palette:
+    scheme: slate
+    primary: deep purple
+    accent: pink
+  features:
+    - content.code.copy
+    - content.code.select
+    - content.action.view
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.expand
+    - navigation.path
+    - toc.follow
+    - toc.integrate
+    - search.highlight
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - tables
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.arithmatex:
+      generic: true
+  - admonition
+  - pymdownx.details
+
+extra_javascript:
+  - javascripts/katex.js
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
+
+extra_css:
+  - https://unpkg.com/katex@0/dist/katex.min.css
+
+plugins:
+  - search

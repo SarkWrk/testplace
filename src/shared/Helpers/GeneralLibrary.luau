@@ -249,7 +249,7 @@ number (leading didgits) (NOTE: the leading digits is e-1),
 
 number (order of magnitude (b10)).
 ]]
-function module.NumberManipulation.Truncate(input: number, places: number): (number, number)
+function module.NumberManipulation.Truncate(input: number, places: number): number
 	assert(typeof(input) == "number", "'input' is not a number. 'input' type: " .. typeof(input))
 	assert(typeof(places) == "number", "'places' is not a number. 'places' type: " .. typeof(places))
 	assert((places > 0) == true, "'places' is less than 1. Making this number less than 1 is unadvised and protected against. 'places' value: " .. places)
@@ -257,7 +257,7 @@ function module.NumberManipulation.Truncate(input: number, places: number): (num
 	local oom = module.NumberManipulation.oom(input) * -1
 	local actual = math.floor(input * math.pow(10, oom + places)) / math.pow(10, places)
 
-	return actual, oom * -1
+	return actual * math.pow(10, oom * -1 + 1)
 end
 
 --[[

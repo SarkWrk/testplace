@@ -222,11 +222,11 @@ local function ReportLocations(positions : {["Instance"] : Instance, ["Position"
             end
     
             if locatedAtPosition == "" then
-                local relAlt, altExp = helperModule.NumberManipulation.Truncate((Vector3.new(0, index.Position.Y, 0)-Vector3.new(0, keyInformation.Origine.Y, 0)).Magnitude, 3)
-                local relDist, distExp = helperModule.NumberManipulation.Truncate((Vector3.new(index.Position.X, 0, index.Position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
+                local relAlt = helperModule.NumberManipulation.Truncate((Vector3.new(0, index.Position.Y, 0)-Vector3.new(0, keyInformation.Origine.Y, 0)).Magnitude, 3)
+                local relDist = helperModule.NumberManipulation.Truncate((Vector3.new(index.Position.X, 0, index.Position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
 
-                output = output .. "<br />" .. name .. " at alt. rel. : <i>" .. relAlt * 10 .. "e" .. altExp - 1
-                .. "</i> and dist. rel. : <i>" .. relDist * 10 .. "e" .. distExp - 1 .. "</i>."
+                output = output .. "<br />" .. name .. " at alt. rel. : <i>" .. relAlt
+                .. "</i> and dist. rel. : <i>" .. relDist .. "</i>."
             else
                 output = output .. "<br />" .. name .. " at <i>" .. locatedAtPosition .. "</i>."
             end

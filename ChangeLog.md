@@ -1,3 +1,16 @@
+# 24/04/25-xx/xx/25
+## Additions
+- Updating and adding new entries into the documentation.
+  - Now using MkDocs.
+
+## Changes
+- Updated CONTRIBUTING.md
+- Changed `src/Helpers/GeneralLibrary.luau`.NumberManipulation.Truncate() to return one number (the truncated number) instead of two (the leading digits and order of magnitude required to construct the truncated number).
+
+## Removals
+## Fixes
+- Fixed some paths not being changed in `src/character/ZetaInformation.client.luau`.
+
 # 20/04/25-23/04/25
 
 >[!WARNING]
