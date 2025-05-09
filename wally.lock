@@ -8,43 +8,26 @@ version = "0.3.1"
 dependencies = []
 
 [[package]]
-<<<<<<< HEAD
 name = "data-oriented-house/squash"
 version = "2.5.0"
 dependencies = []
 
 [[package]]
-=======
->>>>>>> main
 name = "evaera/promise"
 version = "4.0.0"
 dependencies = []
 
 [[package]]
-<<<<<<< HEAD
 name = "lucasmzreal/fastsignal"
 version = "10.4.0"
-=======
-name = "ffrostflame/bytenet"
-version = "0.4.6"
-dependencies = []
-
-[[package]]
-name = "lucasmzreal/fastsignal"
-version = "10.3.2"
->>>>>>> main
 dependencies = []
 
 [[package]]
 name = "pengu/testplace"
 version = "0.1.0"
-<<<<<<< HEAD
 dependencies = [["Classpp", "tenebrisnoctua/classpp@1.2.1"], ["FastSignal", "lucasmzreal/fastsignal@10.4.0"], ["Promise", "evaera/promise@4.0.0"], ["Squash", "data-oriented-house/squash@2.5.0"], ["Vide", "centau/vide@0.3.1"]]
 
 [[package]]
 name = "tenebrisnoctua/classpp"
 version = "1.2.1"
 dependencies = []
-=======
-dependencies = [["ByteNet", "ffrostflame/bytenet@0.4.6"], ["FastSignal", "lucasmzreal/fastsignal@10.3.2"], ["Promise", "evaera/promise@4.0.0"], ["Vide", "centau/vide@0.3.1"]]
->>>>>>> main
