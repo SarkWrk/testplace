@@ -2,13 +2,13 @@
 
 ## From Wally
 
-### ByteNet
+### Squash
 
-By ffrostfall
+By SolarScuffle-Bot
 
-\> [Download](https://github.com/ffrostfall/ByteNet)
+\> [Download](https://github.com/Data-Oriented-House/Squash)
 
-\> [Documentation](https://ffrostfall.github.io/ByteNet/)
+\> [Documentation](https://data-oriented-house.github.io/Squash/)
 
 ### roblox-lua-promise
 
@@ -33,6 +33,14 @@ By centau
 \> [Download](https://github.com/centau/vide/)
 
 \> [Documentation](https://centau.github.io/vide/)
+
+## Class++ (ClassPP)
+
+By TenebrisNoctua
+
+\> [Download](https://github.com/TenebrisNoctua/ClassPP)
+
+\> [Documentation](https://tenebrisnoctua.github.io/ClassPP/)
 
 ## From NPM
 

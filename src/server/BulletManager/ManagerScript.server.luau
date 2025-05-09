@@ -1,7 +1,6 @@
-require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("ByteNet"))
+local squash_handler = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("Squash_Handler"))
 
 local bulletComponent = require(game:GetService("ServerStorage"):WaitForChild("Components"):WaitForChild("BulletComponent"):WaitForChild("BulletComponent"))
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("ByteNetPackets"))
 local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Promise"))
 
 local activeBullets: { [number]: { ["lookdirection"]: Vector3 } } = {}
@@ -36,39 +35,59 @@ local function SendToClients(
 
 	local createdPacket = {}
 
-	createdPacket.Index = sendData.Index
+	local index_cursor = squash_handler.cursor()
+	squash_handler.weapon_stuffs.server_bullet_creation.Index.ser(index_cursor, sendData.Index)
+	createdPacket.Index = squash_handler.tobuffer(index_cursor)
 
 	if sendData.PierceAmount then
-		createdPacket.PierceAmount = sendData.PierceAmount
+		local pierce_cursor = squash_handler.cursor()
+		squash_handler.weapon_stuffs.server_bullet_creation.PierceAmount.ser(pierce_cursor, sendData.PierceAmount)
+		createdPacket.PierceAmount = squash_handler.tobuffer(pierce_cursor)
 	end
 
 	if sendData.Position then
-		createdPacket.PositionX = sendData.Position.X
-		createdPacket.PositionY = sendData.Position.Y
-		createdPacket.PositionZ = sendData.Position.Z
+		local position_cursor = squash_handler.cursor()
+		squash_handler.weapon_stuffs.server_bullet_creation.Position.ser(position_cursor, {
+			X = sendData.Position.X,
+			Y = sendData.Position.Y,
+			Z = sendData.Position.Z,
+		})
+		createdPacket.Position = squash_handler.tobuffer(position_cursor)
 	end
 
 	if sendData.EndPosition then
-		createdPacket.EndPositionX = sendData.EndPosition.X
-		createdPacket.EndPositionY = sendData.EndPosition.Y
-		createdPacket.EndPositionZ = sendData.EndPosition.Z
+		local end_position_cursor = squash_handler.cursor()
+		squash_handler.weapon_stuffs.server_bullet_creation.EndPosition.ser(end_position_cursor, {
+			X = sendData.EndPosition.X,
+			Y = sendData.EndPosition.Y,
+			Z = sendData.EndPosition.Z,
+		})
+		createdPacket.EndPosition = squash_handler.tobuffer(end_position_cursor)
 	end
 
 	if sendData.Speed then
-		createdPacket.Speed = sendData.Speed
+		local speed_cursor = squash_handler.cursor()
+		squash_handler.weapon_stuffs.server_bullet_creation.Speed.ser(speed_cursor, sendData.Speed)
+		createdPacket.Speed = squash_handler.tobuffer(speed_cursor)
 	end
 
 	if sendData.Rotation then
-		createdPacket.RotationX = sendData.Rotation.X
-		createdPacket.RotationY = sendData.Rotation.Y
-		createdPacket.RotationZ = sendData.Rotation.Z
+		local rotation_cursor = squash_handler.cursor()
+		squash_handler.weapon_stuffs.server_bullet_creation.Rotation.ser(rotation_cursor, {
+			X = sendData.Rotation.X,
+			Y = sendData.Rotation.Y,
+			Z = sendData.Rotation.Z,
+		})
+		createdPacket.Rotation = squash_handler.tobuffer(rotation_cursor)
 	end
 
 	if sendData.ID then
-		createdPacket.ID = sendData.ID
+		local id_cursor = squash_handler.cursor()
+		squash_handler.weapon_stuffs.server_bullet_creation.ID.ser(id_cursor, sendData.ID)
+		createdPacket.ID = squash_handler.tobuffer(id_cursor)
 	end
 
-	packets.BulletCreation.ServerBulletCreation.sendToAll(createdPacket)
+	game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Weapon_Stuff"):FireAllClients(squash_handler.prefix_ser(2), createdPacket)
 end
 
 local function OpenIndexFinder(): number
@@ -112,7 +131,12 @@ local function BulletCreation(info: BulletInfo, player: Player?)
 	return promises.new(function(resolve, _, onCancel)
 		-- Create an index in activeBullets to track the bullet thaheartbeat:Disconnect(t has been fired
 		local index = OpenIndexFinder()
-		local bullet = bulletComponent.interface.New(info)
+		local bullet = bulletComponent.new(info.Damage, info.Enemy, info.IgnoreTagged, info.MoveTowards, info.BulletDrop, info.DistanceTimeOut, info.Speed, info.Pierce, info.PierceDamageLoss, info.StartPosition)
+		
+		coroutine.resume(coroutine.create(function()
+			bullet:START()
+		end))
+
 		local playerId
 
 		if not player then
@@ -121,7 +145,7 @@ local function BulletCreation(info: BulletInfo, player: Player?)
 			playerId = player.UserId
 		end
 
-		activeBullets[index] = { lookdirection = helper.Conversions.CFrameAnglesToVector3(bullet.Information.MoveTowards) }
+		activeBullets[index] = { lookdirection = helper.Conversions.CFrameAnglesToVector3(bullet.move_towards) }
 
 		local heartbeat: RBXScriptConnection
 
@@ -131,7 +155,7 @@ local function BulletCreation(info: BulletInfo, player: Player?)
 
 		local travelTime: number = helper.NumberManipulation.Delta(info.StartPosition, endPosition) / info.Speed
 
-		local pierce_amount = table.maxn(bullet.Variable.PartsPierced)
+		local pierce_amount = table.maxn(bullet.parts_pierced)
 
 		-- Prepares some data to be sent to the client for bullet creation
 		local sendInformation = {}
@@ -148,16 +172,19 @@ local function BulletCreation(info: BulletInfo, player: Player?)
 
 		-- Monitor the bullet for specific information
 		heartbeat = game:GetService("RunService").Heartbeat:Connect(function()
-			activeBullets[index].lookdirection = helper.Conversions.CFrameAnglesToVector3(bullet.Variable.LookDirection)
+			activeBullets[index].lookdirection = helper.Conversions.CFrameAnglesToVector3(bullet.look_direction)
 
-			if table.maxn(bullet.Variable.PartsPierced) ~= pierce_amount then
-				pierce_amount = table.maxn(bullet.Variable.PartsPierced)
+			if table.maxn(bullet.parts_pierced) ~= pierce_amount then
+				pierce_amount = table.maxn(bullet.parts_pierced)
 
 				SendToClients({ Index = index, PierceAmount = pierce_amount})
 			end
 
 			-- When the bullet is destroyed, tell the client to also destroy the bullet
-			if bullet.Variable.ToDestroy == true then
+			if bullet.to_destroy == true then
+				bullet:Destroy()
+				bullet = nil
+
 				totalActiveBullets -= 1
 
 				SendToClients({ Index = index})

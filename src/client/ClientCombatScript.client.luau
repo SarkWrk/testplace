@@ -1,6 +1,4 @@
-require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("ByteNet"))
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("ByteNetPackets"))
-
+local squash_handler = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("Squash_Handler"))
 local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Promise"))
 local helper = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local camera = workspace.CurrentCamera
@@ -14,8 +12,11 @@ local log_debug_information = false
 function SendBulletInformationPromise()
 	return promises.new(function(resolve)
 		local cameraRotationX, cameraRotationY, cameraRotationZ = camera.CFrame:ToEulerAnglesXYZ()
-	
-		packets.BulletCreation.ClientBulletCreation.send({
+
+		local data_cursor = squash_handler.cursor()
+		local data = squash_handler.weapon_stuffs.client_bullet_creation
+
+		data.ser(data_cursor, {
 			PositionX = camera.CFrame.Position.X,
 			PositionY = camera.CFrame.Position.Y,
 			PositionZ = camera.CFrame.Position.Z,
@@ -23,6 +24,11 @@ function SendBulletInformationPromise()
 			RotationY = cameraRotationY,
 			RotationZ = cameraRotationZ,
 		})
+
+		local buffer = squash_handler.tobuffer(data_cursor)
+
+		game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Weapon_Stuff"):FireServer(squash_handler.prefix_ser(1), buffer)
+
 		lastFired = tick()
 
 		resolve("Sent request to fire bullet.")
@@ -31,7 +37,7 @@ end
 
 function SendArmedInformationPromise()
 	return promises.new(function(resolve)
-		packets.ArmClient.ArmClient.send(nil)
+		game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Weapon_Stuff"):FireServer(squash_handler.prefix_ser(3))
 
 		resolve("Sent request to change Armed status to: " .. tostring(safetyOff) .. ".")
 	end)

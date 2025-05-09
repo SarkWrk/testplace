@@ -2,7 +2,7 @@ site_name: testplace | Documentation
 site_url: https://sarkwrk.github.io/testplace/
 repo_url: https://github.com/sarkwrk/testplace
 repo_name: Sarkwrk/testplace
-edit_uri: https://github.com/sarkwrk/testplace/main/docs/
+edit_uri: https://github.com/sarkwrk/testplace/beta/docs/
 theme:
   name: material
   icon:
@@ -43,6 +43,9 @@ markdown_extensions:
       generic: true
   - admonition
   - pymdownx.details
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 extra_javascript:
   - javascripts/katex.js

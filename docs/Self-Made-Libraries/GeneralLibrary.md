@@ -6,7 +6,7 @@ Located at: [`src/shared/Helpers/GeneralLibrary.luau`](https://github.com/SarkWr
 
 ### PromiseReturn
 
-This type is returned by the module.Promise.*() functions.
+This type is returned by the module.Promises.*() functions.
 
 | Value             | Type                                                                                              | Explanation                                                                                                                           |
 | ---               | ---                                                                                               | ---                                                                                                                                   |
@@ -16,7 +16,7 @@ This type is returned by the module.Promise.*() functions.
 | .Reject           | any?                                                                                              | The value(s) that are rejected from the promise (if there are any).                                                                   |
 | .Failure          | any?                                                                                              | Any values that are returned from the failureHandler (if there are any).                                                              |
 | .Promise          | (...any) -> ...any                                                                                | The promise that all the values came from. This value can be used to call the promise again in the case of not resolving.             |
-| .ExceptionHandler | (PromiseReturn: PromiseReturn, reportSuccess: boolean?) -> ((...any) -> ...any, PromiseReturn)    | Used to chain [module.Promise.ExceptionHandler()](https://sarkwrk.github.io/Self-Made-Libraries/GeneralLibrary/#exceptionhandler).    |
+| .ExceptionHandler | (PromiseReturn: PromiseReturn, reportSuccess: boolean?) -> ((...any) -> ...any, PromiseReturn)    | Used to allow the chaining of [module.Promise.ExceptionHandler()](https://sarkwrk.github.io/testplace/Self-Made-Libraries/GeneralLibrary/#exceptionhandler).    |
 
 !!! Warning
     When a function creates this type, not all values will be filled. Make sure you know (or add acheck for) which values will be filled before implementing code that uses this type!

@@ -1,5 +1,3 @@
---!strict
-
 local module = {}
 
 module.Conversions = {}
@@ -7,14 +5,59 @@ module.NumberManipulation = {}
 module.TableManipulation = {}
 module.Promises = {}
 
-export type PromiseReturn = {
-	Resolve : any?,
-	Resolved : boolean,
-	Error : any?,
-	Reject : any?,
-	Failure : any?,
-	Promise : (...any) -> ...any,
-	ExceptionHandler : (PromiseRetrn: PromiseReturn,reportSuccess: boolean?) -> ((...any) -> ...any, PromiseReturn)
+type andThen_f<A, B...> = (successHandler: (...any) -> (...any), failureHandler: (...any) -> (...any)) -> promise<A, B...>
+type await_f<A> = () -> (boolean, A)
+type promise<A, B...> = (B...) -> {andThen: andThen_f<A, B...>, await: await_f<A>}
+
+export type PromiseReturn<A, B...> = {
+	--[[
+	What is returned from the promise
+	]]
+	Resolve: A,
+
+	--[[
+	Whether the promise resolved
+	]]
+	Resolved: boolean,
+
+	--[[
+	If the promise errors, the error
+	]]
+	Error: any?,
+
+	--[[
+	If the promise is rejected, what is rejected
+	]]
+	Reject: any?,
+
+	--[[
+	If the promise fails, the fail
+	]]
+	Failure: any?,
+
+	--[[
+	The promise fed into .PromiseHandler()
+	]]
+	Promise: (B...) -> A,
+
+	--[[
+	This function is supposed to be chained onto .PromiseHandler()
+
+	@args
+
+	promise_return: PromiseReturn
+
+	The PromiseReturn obtained from running the promise from .PromiseHandler() (though this datatype can also be created.)
+
+	report_success: bool
+
+	Whether the function should print out the resolve from PromiseReturn.Resolve.
+
+	@returns
+
+	The promise (first) and promise_return (second).
+	]]
+	ExceptionHandler: (promise_return: PromiseReturn<A, B...> , report_success: boolean?) -> ((B...) -> A, PromiseReturn<A, B...>)
 }
 
 --[[
@@ -22,26 +65,26 @@ This function is supposed to be chained onto .PromiseHandler()
 
 @args
 
-returnedFromPromise: PromiseReturn
+promise_return: PromiseReturn
 
 The PromiseReturn obtained from running the promise from .PromiseHandler() (though this datatype can also be created.)
 
-reportSuccess: bool
+report_success: bool
 
 Whether the function should print out the resolve from PromiseReturn.Resolve.
 
 @returns
 
-The promise (first) and returnedFromPromise (second).
+The promise (first) and promise_return (second).
 ]]
-function module.Promises.ExceptionHandler(returnedFromPromise : PromiseReturn, reportSuccess : boolean?) : ((...any) -> ...any, PromiseReturn)
-	local function GetTraceback(onlyFirstTrace : boolean)
+function module.Promises.ExceptionHandler<A, B...>(promise_return : PromiseReturn<A, B...>, report_success : boolean?) : ((B...) -> A, PromiseReturn<A, B...>)
+	local function GET_TRACEBACK(onlyFirstTrace : boolean)
 		local trace
 
 		if onlyFirstTrace == true then
 			trace = debug.info(5, "sln")
 		else
-			local traceback = debug.traceback("", 4)
+			local traceback = debug.traceback("", 3)
 			local splitTraceback = traceback:split("\n")
 
 			trace = ""
@@ -58,38 +101,42 @@ function module.Promises.ExceptionHandler(returnedFromPromise : PromiseReturn, r
 		return trace
 	end
 
-	if returnedFromPromise.Resolved == false then
-		if returnedFromPromise.Error then
-			error("Promise errored: " .. returnedFromPromise.Error .. GetTraceback(false), 4)
+	if promise_return.Resolved == false then
+		if promise_return.Error then
+			error("Promise errored: " .. promise_return.Error .. GET_TRACEBACK(false), 3)
 		end
 		
-		if returnedFromPromise.Reject then
-			if typeof(returnedFromPromise.Reject) == "string" then
-				warn("Promise was rejected: " .. returnedFromPromise.Reject .. GetTraceback(false))
+		if promise_return.Reject then
+			if typeof(promise_return.Reject) == "string" then
+				warn("Promise was rejected: " .. promise_return.Reject .. GET_TRACEBACK(false))
 			else
-				warn("Promise was rejected! Backtrace: " .. GetTraceback(false))
-				warn(returnedFromPromise.Reject)
+				warn("Promise was rejected! Backtrace: " .. GET_TRACEBACK(false))
+				warn(promise_return.Reject)
 			end
 		end
 
-		return returnedFromPromise.Promise, returnedFromPromise
+		return promise_return.Promise, promise_return
 	end
 
-	if not reportSuccess then
-		return returnedFromPromise.Promise, returnedFromPromise
+	if not report_success then
+		return promise_return.Promise, promise_return
 	end
 
-	local _, _ = pcall(function()
-		print(tostring(returnedFromPromise.Resolve) .. " - " .. GetTraceback(true))
+	local success, _ = pcall(function()
+		print(tostring(promise_return.Resolve) .. " - " .. GET_TRACEBACK(true))
 	end)
 
-	return returnedFromPromise.Promise, returnedFromPromise
+	if success == false then
+		print(promise_return.Resolve, " - " .. GET_TRACEBACK(true))
+	end
+
+	return promise_return.Promise, promise_return
 end
 
 --[[
 @args
 
-promise: func(...any) -> any
+promise_func: (...any) -> any
 
 The promise to be ran.
 
@@ -104,39 +151,17 @@ The parameters to be passed to the promise.
 @returns
 
 PromiseReturn: PromiseReturn
-
-Describes:
-
-Resolved: ...Whether the promise resolved.
-
-Resolve: ...What is resolved from the promise (if it resolves.)
-
-Reject: ...What is rejected from the promise (if it fails.)
-
-Error: ...What is errored from the promise (if it errors.)
-
-Failure: ...What is returned if the promise fails (if it fails.)
-
-Promise: ...The promise.
-
-ExceptionHandler: ...Should be chained on the end of this function in order to handle the rest of this datatype.
-
-@args
-
-returnedFromPromise: PromiseReturn
-
-The PromiseReturn obtained from running the promise from .PromiseHandler() (though this datatype can also be created.)
-
-reportSuccess: bool
-
-Whether the function should print out the resolve from PromiseReturn.Resolve.
-
-@returns
-
-The promise (first) and returnedFromPromise (second).
 ]]
-function module.Promises.PromiseHandler(promise : (...any) -> ...any, await : boolean, ... : any) : PromiseReturn
-	local result : PromiseReturn = {Resolve = nil, Resolved = false, Reject = nil, Error = nil, Failure = nil, Promise = promise, ExceptionHandler = module.Promises.ExceptionHandler}
+function module.Promises.PromiseHandler<A, B...>(promise_func: (B...) -> A, await : boolean, ... : B...) : PromiseReturn<A, B...>
+	local result = {
+		Resolve = nil,
+		Resolved = false,
+		Reject = nil,
+		Error = nil,
+		Failure = nil,
+		Promise = promise_func,
+		ExceptionHandler = module.Promises.ExceptionHandler
+	}
 
 	local function successFunction(... : any)
 		result.Resolve = ...
@@ -147,13 +172,16 @@ function module.Promises.PromiseHandler(promise : (...any) -> ...any, await : bo
 		result.Failure = ...
 	end
 
+	local promise_typed = promise_func
+	promise_typed = promise_typed :: promise<A, B...>
+
 	if await ~= true then
-		promise(...):andThen(successFunction, failureFunction)
+		promise_typed(...):andThen(successFunction, failureFunction)
 
 		return result
 	end
 
-	local worked : boolean, returned : any = promise(...):await()
+	local worked : boolean, returned : any = promise_typed(...):await()
 
 	if worked == false then
 		result.Reject = returned

@@ -1,4 +1,28 @@
-# 24/04/25-xx/xx/25
+# 30/4/25-xx/xx/25
+
+## Additions
+- Added new dependencies: [Class++](https://github.com/TenebrisNoctua/ClassPP) and [Squash](https://github.com/Data-Oriented-House/Squash).
+- Refactored `src/shared/Helpers/GeneralLibrary.luau`'s `Promise.PromiseHandler()` and `Promise.ExceptionHandler()` to have types.
+  - As a side effect, the module is no longer strictly typed because I could not find a way to make it work without showing errors.
+- Added initialisation parameters to `src/private/Components/AI/PathfindingAI`. 
+
+## Changes
+- Class++ refactorings:
+  - Refactored `src/private/Components/BulletComponent/BulletComponent.luau`.
+    - This means that `src/server/BulletManager/ManagerScript.server.luau` has been refactored to work with the refactor.
+  - Refactored `src/private/Componenets/AI/PathfindingAI`.
+- Moved from ByteNet to Squash.
+- Changed the backtrace from `src/shared/dependencies other/Helpers/GeneralLibrary.luau`'s `Promise.ExceptionHandler()` to start from three levels instead of four levels.
+
+## Removals
+- Removed dependency: [ByteNet](https://github.com/ffrostfall/ByteNet).
+
+## Fixes
+- Fixed broken links.
+  - View source link was leading to the wrong branch.
+  - Other link(s) were missing the "testplace" in "https://sarkwrk.github.io/testplace".
+
+# 24/04/25-30/4/25
 ## Additions
 - Updating and adding new entries into the documentation.
   - Now using MkDocs.

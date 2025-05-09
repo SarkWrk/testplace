@@ -8,5 +8,6 @@ private = true
 [dependencies]
 Promise = "evaera/promise@4.0.0"
 FastSignal = "lucasmzreal/fastsignal@10.3.2"
-ByteNet = "ffrostflame/bytenet@0.4.6"
+Squash = "data-oriented-house/squash@2.5.0"
 Vide = "centau/vide@0.3.1"
+Classpp = "tenebrisnoctua/classpp@1.2.1"

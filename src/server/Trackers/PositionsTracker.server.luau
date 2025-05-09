@@ -8,8 +8,7 @@ local debrisService = game:GetService("Debris")
 local keyInformation = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("MissionImportantPositions")).TestPlace
 local random = Random.new()
 
-require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("ByteNet"))
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("ByteNetPackets"))
+local squash_handler = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("Squash_Handler"))
 
 local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Promise"))
 
@@ -169,7 +168,23 @@ local function  FlyDrone(data : {{["Position"] : Vector3, ["Instance"] : Instanc
 
     drone.Parent = workspace.Drones
 
-    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("DroneDirections"):FireAllClients(drone, fixedPositionalData, droneSpeed, dronePathSmoothening)
+    local data_cursor = squash_handler.cursor()
+
+    local position_table = {}
+
+    for index, vector in pairs(fixedPositionalData) do
+        position_table[index] = {X = vector.X, Y = vector.Y, Z = vector.Z}
+    end
+    
+    squash_handler.drone_directions.drone_movement.ser(data_cursor, {
+        drone_speed = droneSpeed,
+        drone_path_smoothening = dronePathSmoothening,
+
+        positions = position_table
+    })
+    local data_buffer = squash_handler.tobuffer(data_cursor)
+
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("DroneDirections"):FireAllClients(squash_handler.prefix_ser(1), drone, data_buffer)
 
     task.wait(totalTime)
 
@@ -232,7 +247,12 @@ local function ReportLocations(positions : {["Instance"] : Instance, ["Position"
             end
         end
     
-        packets.SendPositionalInformation.SendPositionalInformation.sendToAll(output)
+        local data_cursor = squash_handler.cursor()
+
+        squash_handler.drone_directions.send_positional_information().ser(data_cursor, output)
+        local data_buffer = squash_handler.tobuffer(data_cursor)
+
+        game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("DroneDirections"):FireAllClients(squash_handler.prefix_ser(2), data_buffer)
 
         resolve("Sent information")
     end)
@@ -240,7 +260,7 @@ end
 
 local function FindPosition(tag : string) : {{["Position"] : Vector3, ["Instance"] : Part|Model}}
     task.desynchronize()
-    local positionalTable = {}
+    local positionalTable = {} :: {Instance: Instance, Position: Vector3}
 
     local instances = collectionservice:GetTagged(tag)
 
@@ -274,7 +294,7 @@ local function FindPosition(tag : string) : {{["Position"] : Vector3, ["Instance
         return PositionTableIndexedByInstancePathName(positionalTable)
     end)
 
-    helperModule.Promises.ExceptionHandler(helperModule.Promises.PromiseHandler(ReportLocations, false, positionalTable, tag))
+    helperModule.Promises.PromiseHandler(ReportLocations, false, positionalTable, tag):ExceptionHandler()
 
     return positionalTable
 end

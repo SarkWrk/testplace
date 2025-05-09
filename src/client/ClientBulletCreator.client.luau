@@ -1,5 +1,7 @@
 local tracker : {[number] : {Part : Part, Tween : Tween, InRemovalProcess : boolean}} = {}
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("ByteNetPackets"))
+
+local squash_handler = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("Squash_Handler"))
+
 local helper = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local bulletsFolder = Instance.new("Folder")
 bulletsFolder.Name = "Bullets"
@@ -131,7 +133,18 @@ If there is only an index as a value, the bullet will be "deleted" (cached).
 
 If there is more filled out data than the index, then changes will be made to the bullet if the required data for those changes are present.
 ]]
-packets.BulletCreation.ServerBulletCreation.listen(function(data)
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Weapon_Stuff").OnClientEvent:Connect(function(prefix: buffer, payload: {})
+	local decoded_prefix: string = squash_handler.prefix_key.WeaponStuff[tostring(squash_handler.prefix_des(prefix))]
+
+	if decoded_prefix:lower() ~= string.lower("ServerBulletCreation") then
+		return
+	end
+
+	local data = {}
+
+	for index, value: buffer in pairs(payload) do
+		data[index] = squash_handler.weapon_stuffs.server_bullet_creation[index].des(squash_handler.frombuffer(value))
+	end
 	local only_index_has_value = true
 
 	for _index, _value in pairs(data) do
@@ -191,16 +204,22 @@ packets.BulletCreation.ServerBulletCreation.listen(function(data)
 	local endPosition: Vector3?
 	local rotation: Vector3?
 
-	if data.PositionX and data.PositionY and data.PositionZ then
-		position = Vector3.new(data.PositionX, data.PositionY, data.PositionZ)
+	if data.Position then
+		if data.Position.X and data.Position.Y and data.Position.Z then
+			position = Vector3.new(data.Position.X, data.Position.Y, data.Position.Z)
+		end
 	end
 	
-	if data.EndPositionX and data.EndPositionY and data.EndPositionZ then
-		endPosition = Vector3.new(data.EndPositionX, data.EndPositionY, data.EndPositionZ)
+	if data.EndPosition then
+		if data.EndPosition.X and data.EndPosition.Y and data.EndPosition.Z then
+			endPosition = Vector3.new(data.EndPosition.X, data.EndPosition.Y, data.EndPosition.Z)
+		end
 	end
 	
-	if data.RotationX and data.RotationY and data.RotationZ then
-		rotation = Vector3.new(data.RotationX, data.RotationY, data.RotationZ)
+	if data.Rotation then
+		if data.Rotation.X and data.Rotation.Y and data.Rotation.Z then
+			rotation = Vector3.new(data.Rotation.X, data.Rotation.Y, data.Rotation.Z)
+		end
 	end
 
 	if position and rotation then
