@@ -1,0 +1,1319 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://sarkwrk.github.io/testplace/Self-Made-Libraries/GeneralLibrary/">
+      
+      
+        <link rel="prev" href="../../Dictionaries/WeaponInformation/">
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+    
+    
+      
+        <title>General Library - testplace | Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="https://unpkg.com/katex@0/dist/katex.min.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#general-library" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="testplace | Documentation" class="md-header__button md-logo" aria-label="testplace | Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.53 5.03a.75.75 0 1 0-1.06-1.06l-6.25 6.25a.75.75 0 0 0 0 1.06l6.25 6.25a.75.75 0 1 0 1.06-1.06L5.56 11.5H17a3.25 3.25 0 0 1 3.25 3.248v4.502a.75.75 0 0 0 1.5 0v-4.502A4.75 4.75 0 0 0 17 10H5.56z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            testplace | Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              General Library
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/sarkwrk/testplace" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Sarkwrk/testplace
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../Dependencies/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Dependencies
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../AI/AICreationInformation/" class="md-tabs__link">
+          
+  
+  
+  AI
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../Dictionaries/WeaponInformation/" class="md-tabs__link">
+          
+  
+  
+  Dictionaries
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Self Made Libraries
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="testplace | Documentation" class="md-nav__button md-logo" aria-label="testplace | Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.53 5.03a.75.75 0 1 0-1.06-1.06l-6.25 6.25a.75.75 0 0 0 0 1.06l6.25 6.25a.75.75 0 1 0 1.06-1.06L5.56 11.5H17a3.25 3.25 0 0 1 3.25 3.248v4.502a.75.75 0 0 0 1.5 0v-4.502A4.75 4.75 0 0 0 17 10H5.56z"/></svg>
+
+    </a>
+    testplace | Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sarkwrk/testplace" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Sarkwrk/testplace
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dependencies
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    AI
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            AI
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../AI/AICreationInformation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI Initialisation Parameters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../AI/CombatAI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CombatAI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../AI/PathfindingAI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PathfindingAI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Dictionaries
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Dictionaries
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Dictionaries/WeaponInformation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Gun Statistics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Self Made Libraries
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Self Made Libraries
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    General Library
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    General Library
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#promisereturn" class="md-nav__link">
+    <span class="md-ellipsis">
+      PromiseReturn
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#promise-related-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Promise-related Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Promise-related Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#promisehandler" class="md-nav__link">
+    <span class="md-ellipsis">
+      .PromiseHandler()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exceptionhandler" class="md-nav__link">
+    <span class="md-ellipsis">
+      :ExceptionHandler()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#number-related-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Number-related Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Number-related Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oom" class="md-nav__link">
+    <span class="md-ellipsis">
+      .oom()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#round" class="md-nav__link">
+    <span class="md-ellipsis">
+      .Round()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#truncate" class="md-nav__link">
+    <span class="md-ellipsis">
+      .Truncate
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delta" class="md-nav__link">
+    <span class="md-ellipsis">
+      .Delta
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-related-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table-related Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table-related Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#createrelativetable" class="md-nav__link">
+    <span class="md-ellipsis">
+      .CreateRelativeTable()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#orderrelativetable" class="md-nav__link">
+    <span class="md-ellipsis">
+      .OrderRelativeTable()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-conversion-related-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Type Conversion Related Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Conversion Related Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stringtovector3" class="md-nav__link">
+    <span class="md-ellipsis">
+      .StringToVector3()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vector3tocframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      .Vector3ToCFrame()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vector3tostring" class="md-nav__link">
+    <span class="md-ellipsis">
+      .Vector3ToString()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cframeanglestovector3" class="md-nav__link">
+    <span class="md-ellipsis">
+      .CFrameAnglesToVector3()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+    
+      
+    
+    <a href="https://github.com/sarkwrk/testplace/beta/docs/Self-Made-Libraries/GeneralLibrary.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="general-library">General Library</h1>
+<p>Located at: <a href="https://github.com/SarkWrk/testplace/blob/main/src/shared/Helpers/GeneralLibrary.luau"><code>src/shared/Helpers/GeneralLibrary.luau</code></a></p>
+<h2 id="types">Types</h2>
+<h3 id="promisereturn">PromiseReturn</h3>
+<p>This type is returned by the module.Promises.*() functions.</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Type</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>.Resolve</td>
+<td>any?</td>
+<td>The value(s) that are resolved from the promise (if there are any).</td>
+</tr>
+<tr>
+<td>.Resolved</td>
+<td>boolean</td>
+<td> Whether the promise resolved or not.</td>
+</tr>
+<tr>
+<td>.Error</td>
+<td>any?</td>
+<td>The error that was returned from the promise (if there is any).</td>
+</tr>
+<tr>
+<td>.Reject</td>
+<td>any?</td>
+<td>The value(s) that are rejected from the promise (if there are any).</td>
+</tr>
+<tr>
+<td>.Failure</td>
+<td>any?</td>
+<td>Any values that are returned from the failureHandler (if there are any).</td>
+</tr>
+<tr>
+<td>.Promise</td>
+<td>(...any) -&gt; ...any</td>
+<td>The promise that all the values came from. This value can be used to call the promise again in the case of not resolving.</td>
+</tr>
+<tr>
+<td>.ExceptionHandler</td>
+<td>(PromiseReturn: PromiseReturn, reportSuccess: boolean?) -&gt; ((...any) -&gt; ...any, PromiseReturn)</td>
+<td>Used to allow the chaining of <a href="https://sarkwrk.github.io/testplace/Self-Made-Libraries/GeneralLibrary/#exceptionhandler">module.Promise.ExceptionHandler()</a>.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When a function creates this type, not all values will be filled. Make sure you know (or add acheck for) which values will be filled before implementing code that uses this type!</p>
+</div>
+<hr />
+<h2 id="promise-related-functions">Promise-related Functions</h2>
+<h3 id="promisehandler">.PromiseHandler()</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo code</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">Promises</span><span class="p">.</span><span class="nf">PromiseHandler</span><span class="p">(</span><span class="nv">promise</span><span class="p">:</span><span class="w"> </span><span class="p">(...</span><span class="nc">any</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="err">...</span><span class="nc">any</span><span class="p">,</span><span class="w"> </span><span class="nv">await</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="p">,</span><span class="w"> </span><span class="p">...:</span><span class="w"> </span><span class="nc">any</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="p">...</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">PromiseReturn</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>This function is used to handle promises in a generic, reliable way.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>promise</td>
+<td>This is the promise that the function will be executing.</td>
+</tr>
+<tr>
+<td>await</td>
+<td>Either calls the function using <a href="https://eryn.io/roblox-lua-promise/api/Promise/#andThen">promise:andThen()</a> or <a href="https://eryn.io/roblox-lua-promise/api/Promise/#await">promise:await()</a>.</td>
+</tr>
+<tr>
+<td>...</td>
+<td>The parameters of the promise.</td>
+</tr>
+</tbody>
+</table>
+<p>The values for PromiseReturn is set this way:</p>
+<div class="language-luau highlight"><span class="filename">Psuedo code</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">Promises</span><span class="p">.</span><span class="nf">PromiseHandler</span><span class="p">()</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">promiseReturn</span><span class="p">:</span><span class="w"> </span><span class="nc">PromiseReturn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">success</span><span class="p">(...)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">        </span><span class="nv">promiseReturn</span><span class="p">.</span><span class="nv">Resolve</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">        </span><span class="nv">promiseReturn</span><span class="p">.</span><span class="nv">Resolved</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">failure</span><span class="p">(...)</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">        </span><span class="nv">promiseReturn</span><span class="p">.</span><span class="nv">Failure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">await</span><span class="w"> </span><span class="o">~=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">        </span><span class="nf">my_promise</span><span class="p">(...):</span><span class="nc">andThen</span><span class="p">(</span><span class="nv">success</span><span class="p">,</span><span class="w"> </span><span class="nv">failure</span><span class="p">)</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">promiseReturn</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">succeeded</span><span class="p">,</span><span class="w"> </span><span class="nv">returned</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">my_promise</span><span class="p">(...):</span><span class="nc">await</span><span class="p">()</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">succeeded</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">        </span><span class="nv">promiseReturn</span><span class="p">.</span><span class="nv">Reject</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">returned</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">promiseReturn</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">    </span><span class="nv">promiseReturn</span><span class="p">.</span><span class="nv">Resolved</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">    </span><span class="nv">promiseReturn</span><span class="p">.</span><span class="nv">Resolve</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">returned</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">promiseReturn</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="kr">end</span>
+</span></code></pre></div>
+<details class="info">
+<summary>Source Code</summary>
+<p>Although this is very close to the actual code, you can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L136">here</a>.</p>
+</details>
+<h3 id="exceptionhandler">:ExceptionHandler()</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo code</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">Promises</span><span class="p">.</span><span class="nf">ExceptionHandler</span><span class="p">(</span><span class="nv">PromiseReturn</span><span class="p">:</span><span class="w"> </span><span class="nc">PromiseReturn</span><span class="p">,</span><span class="w"> </span><span class="nv">reportSuccess</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="p">...</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="p">(</span><span class="nv">PromiseReturn</span><span class="p">.</span><span class="nv">Promise</span><span class="p">,</span><span class="w"> </span><span class="nv">PromiseReturn</span><span class="p">)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>This function is meant to be chained onto <code>module.Promises.PromiseHandler()</code>.</p>
+<div class="language-luau highlight"><span class="filename">Example</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">local</span><span class="w"> </span><span class="nv">promise</span><span class="p">,</span><span class="w"> </span><span class="nv">returned</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">module</span><span class="p">.</span><span class="nv">Promises</span><span class="p">.</span><span class="nf">PromiseHandler</span><span class="p">(</span><span class="nv">my_promise</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">):</span><span class="nc">ExceptionHandler</span><span class="p">()</span>
+</span></code></pre></div>
+<p>When this function is ran, it uses the returned value from <code>module.Promises.PromiseHandler()</code> and writes an output.</p>
+<p>If <code>reportSuccess</code> is true, it will write PromiseReturn.Resolve to output if the promise ran successfully.</p>
+<p>If the promise doesn't succeed, the function will write to output what state the promise was left in and any applicable error.</p>
+<div class="language-luau highlight"><span class="filename">Psuedo code</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">Promises</span><span class="p">.</span><span class="nf">ExceptionHandler</span><span class="p">(...)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="p">...</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">PromiseReturn</span><span class="p">.</span><span class="nv">Resolved</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="nv">reportSuccess</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">            </span><span class="c1">-- If the promise resolves, then print the value that is resolved from the promise.</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">            </span><span class="nf">print</span><span class="p">(</span><span class="nv">PromiseReturn</span><span class="p">.</span><span class="nv">Resolve</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">partial</span><span class="w"> </span><span class="nv">traceback</span><span class="p">)</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">        </span><span class="kr">end</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="kr">else</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="nv">PromiseReturn</span><span class="p">.</span><span class="nv">Error</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">            </span><span class="c1">-- If the promise errors, stop the programme and error the error.</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">            </span><span class="nf">error</span><span class="p">(</span><span class="s2">&quot;Promise errored:&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">PromiseReturn</span><span class="p">.</span><span class="nv">Error</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">full</span><span class="w"> </span><span class="nv">traceback</span><span class="p">)</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">        </span><span class="kr">else</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">            </span><span class="c1">-- If the promise was rejected, warn the value that got rejected.</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">            </span><span class="nf">warn</span><span class="p">(</span><span class="s2">&quot;Promise rejected:&quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">PromiseReturn</span><span class="p">.</span><span class="nv">Reject</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">full</span><span class="w"> </span><span class="nv">traceback</span><span class="p">)</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">        </span><span class="kr">end</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">    </span><span class="p">...</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="kr">end</span>
+</span></code></pre></div>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L37">here</a>.</p>
+</details>
+<h2 id="number-related-functions">Number-related Functions</h2>
+<h3 id="oom">.oom()</h3>
+<div class="language-luau highlight"><span class="filename">Pseudo Code</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">NumberManipulation</span><span class="p">.</span><span class="nf">oom</span><span class="p">(</span><span class="nv">input</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">):</span><span class="w"> </span><span class="nc">order</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">magnitude</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">order</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">magnitude</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>Returns the order of magnitude of a b10 number.</p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L171">here</a>.</p>
+</details>
+<h3 id="round">.Round()</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo Code</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">NumberManipulation</span><span class="p">.</span><span class="nf">Round</span><span class="p">(</span><span class="nv">input</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">places</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">rounded</span><span class="w"> </span><span class="nv">number</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">rounded_number</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">math</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="nv">input</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">math</span><span class="p">.</span><span class="nf">pow</span><span class="p">(</span><span class="mf">10</span><span class="p">,</span><span class="w"> </span><span class="nv">places</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nv">places</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">rounded_number</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>If <code>places</code> is specified, will round <code>input</code> to the specified amount of <strong>decimal</strong> places. Otehrwise, will round to the nearest whole number.</p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L203">here</a>.</p>
+</details>
+<h3 id="truncate">.Truncate</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo Code</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">NumberManipulation</span><span class="p">.</span><span class="nf">Truncate</span><span class="p">(</span><span class="nv">input</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nv">places</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">):</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nc">truncated</span><span class="w"> </span><span class="nv">number</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">order</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">magnitude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">module</span><span class="p">.</span><span class="nv">NumberManipulation</span><span class="p">.</span><span class="nf">oom</span><span class="p">(</span><span class="nv">input</span><span class="p">)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">truncated</span><span class="w"> </span><span class="nv">number</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">math</span><span class="p">.</span><span class="nf">floor</span><span class="p">(</span><span class="nv">input</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">math</span><span class="p">.</span><span class="nf">pow</span><span class="p">(</span><span class="mf">10</span><span class="p">,</span><span class="w"> </span><span class="nv">places</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nv">order</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">magnitude</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nv">order</span><span class="w"> </span><span class="nv">of</span><span class="w"> </span><span class="nv">magnitude</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">truncated</span><span class="w"> </span><span class="nv">number</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>Truncates a number to a specified number of places.</p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L250">here</a>.</p>
+</details>
+<h3 id="delta">.Delta</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo Code</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">NumberManipulation</span><span class="p">.</span><span class="nf">Delta</span><span class="p">(</span><span class="nv">initial</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">|</span><span class="nc">Vector3</span><span class="p">,</span><span class="w"> </span><span class="nv">final</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">|</span><span class="nc">Vector3</span><span class="p">):</span><span class="w"> </span><span class="nc">number</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nf">typeof</span><span class="p">(</span><span class="nv">initial</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nv">Vector3</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="nf">typeof</span><span class="p">(</span><span class="nv">final</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nv">Vector3</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="p">(</span><span class="nv">final</span><span class="o">-</span><span class="nv">initial</span><span class="p">).</span><span class="nv">Magnitude</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="kr">else</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">        </span><span class="kr">return</span><span class="w"> </span><span class="nv">final</span><span class="o">-</span><span class="nv">initial</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>Finds the difference between two numbers or two Vector3s and returns it.</p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L266">here</a>.</p>
+</details>
+<h2 id="table-related-functions">Table-related Functions</h2>
+<h3 id="createrelativetable">.CreateRelativeTable()</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo Code</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">TableManipulation</span><span class="p">.</span><span class="nf">OrderRelativeTable</span><span class="p">(</span><span class="nv">tableOfPositions</span><span class="p">:</span><span class="w"> </span><span class="p">{[</span><span class="nc">number</span><span class="p">]:</span><span class="w"> </span><span class="nc">Vector3</span><span class="p">},</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="nv">startPoint</span><span class="p">:</span><span class="w"> </span><span class="nc">Vector3</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="p">{[</span><span class="nc">number</span><span class="p">]:</span><span class="w"> </span><span class="p">{[</span><span class="nc">number</span><span class="p">]:</span><span class="w"> </span><span class="p">{</span><span class="nc">Distance</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nc">Index</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">}}}</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">startPoint</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">        </span><span class="nb">table</span><span class="p">.</span><span class="nf">insert</span><span class="p">(</span><span class="nv">tableOfPositions</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nv">startPoint</span><span class="p">)</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">relative_distances</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="kr">for</span><span class="w"> </span><span class="nv">initial_index</span><span class="p">,</span><span class="w"> </span><span class="nv">position</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">pairs</span><span class="p">(</span><span class="nv">tableOfPositions</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">        </span><span class="kr">for</span><span class="w"> </span><span class="nv">related_index</span><span class="p">,</span><span class="w"> </span><span class="nv">related_position</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">pairs</span><span class="p">(</span><span class="nv">tableOfPositions</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">            </span><span class="nv">relative_distances</span><span class="p">[</span><span class="nv">initial_index</span><span class="p">][</span><span class="nv">related_index</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="nv">Distance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">                </span><span class="p">(</span><span class="nv">position</span><span class="o">-</span><span class="nv">related_position</span><span class="p">).</span><span class="nv">Magnitude</span><span class="p">,</span><span class="w"> </span><span class="nv">Index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">related_index</span><span class="p">}</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">        </span><span class="kr">end</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">relative_distances</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>A diagram to explain what's going on.</p>
+<pre class="mermaid"><code>flowchart TD
+    subgraph one[Mainloop]
+    AA[Start] --&gt; A
+    C[Return table]
+    end
+    subgraph two[Looping through tableOfPositions]
+        A[tableOfPositions] -- Create subtable --&gt; E
+        B[Finished creating subtable?] -- No / Continue looping through the table --&gt; E
+        B -- Yes / Move to next subtable--&gt; A -- Not finished creating subtables --&gt; A
+        A -- FInished creating every subtable --&gt; C
+    end
+    subgraph three[Filling Out Subtables]
+        E[Find delta between looped-index position and group position] --&gt; F
+        F[Create subtable] --&gt; G[Fill out the Distance as the delta and the Index as the subgroup-index] --&gt; B
+    end
+</code></pre>
+<p>The code creates a subtable for every entry in tableOfPositions for every index and its distance from another index <strong><em>including its own index</em></strong> (this being a distance of zero).</p>
+<p>This is stylised as [index][compared-to-index] = {Distance between both indexes' positions, compared-to-index}.</p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L538">here</a>.</p>
+</details>
+<h3 id="orderrelativetable">.OrderRelativeTable()</h3>
+<div class="admonition danger">
+<p class="admonition-title">Use Case</p>
+<p>Only use this function when dealing with a relative table that is based off distances.</p>
+</div>
+<div class="language-luau highlight"><span class="filename">Psuedo Code</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">TableManipulation</span><span class="p">.</span><span class="nf">OrderRelativeTable</span><span class="p">(</span><span class="nv">tableOfRelativeDistances</span><span class="p">:</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="p">{[</span><span class="nc">number</span><span class="p">]:</span><span class="w"> </span><span class="p">{[</span><span class="nc">number</span><span class="p">]:</span><span class="w"> </span><span class="p">{</span><span class="nc">Distance</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nc">Index</span><span class="p">:</span><span class="nc">number</span><span class="p">}}}):</span><span class="w"> </span><span class="p">{[</span><span class="nc">number</span><span class="p">]:</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="p">{</span><span class="nc">Distance</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nc">Index</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">}}</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">subtable</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">pairs</span><span class="p">(</span><span class="nv">tableOfRelativeDistances</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">        </span><span class="nb">table</span><span class="p">.</span><span class="nf">sort</span><span class="p">(</span><span class="nv">subtable</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">a</span><span class="p">,</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">            </span><span class="kr">if</span><span class="w"> </span><span class="nv">a</span><span class="p">.</span><span class="nv">Distance</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nv">b</span><span class="p">.</span><span class="nv">DIstance</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">                </span><span class="kr">return</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">            </span><span class="kr">else</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">                </span><span class="kr">return</span><span class="w"> </span><span class="kc">false</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">            </span><span class="kr">end</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">        </span><span class="kr">end</span><span class="p">)</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">    </span><span class="p">...</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">ordered_table</span><span class="p">:</span><span class="w"> </span><span class="p">{[</span><span class="nc">number</span><span class="p">]:</span><span class="w"> </span><span class="p">{</span><span class="nc">Distance</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">,</span><span class="w"> </span><span class="nc">Index</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="p">}}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">    </span><span class="kr">for</span><span class="w"> </span><span class="nv">i</span><span class="p">,</span><span class="w"> </span><span class="nv">v</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">pairs</span><span class="p">(</span><span class="nv">tableOfRelativeDistances</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">        </span><span class="kd">local</span><span class="w"> </span><span class="nv">previous_index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ordered_table</span><span class="p">[</span><span class="nv">i</span><span class="o">-</span><span class="mf">1</span><span class="p">].</span><span class="nv">Index</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="w">        </span><span class="nv">ordered_table</span><span class="p">[</span><span class="nv">i</span><span class="p">][</span><span class="nv">previous_index</span><span class="p">]</span><span class="w"> </span><span class="o">=</span>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="w">            </span><span class="p">{</span><span class="nv">Distance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">tableOfRelativeDistances</span><span class="p">[</span><span class="nv">i</span><span class="p">][</span><span class="nv">previous_index</span><span class="p">].</span><span class="nv">Distance</span><span class="p">,</span>
+</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="w">            </span><span class="nv">Index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">tableOfRelativeDistances</span><span class="p">[</span><span class="nv">i</span><span class="p">][</span><span class="nv">previous_index</span><span class="p">].</span><span class="nv">Index</span><span class="p">}</span>
+</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="w">    </span><span class="p">...</span>
+</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>
+</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">ordered_table</span>
+</span><span id="__span-10-27"><a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>Sorts an unordered relative table returned by <code>module.TableManipulation.CreateRelativeTable()</code> based on shortest distance between indexes. </p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L411">here</a>.</p>
+</details>
+<h2 id="type-conversion-related-functions">Type Conversion Related Functions</h2>
+<h3 id="stringtovector3">.StringToVector3()</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo Code</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">Conversions</span><span class="p">.</span><span class="nf">StringToVector3</span><span class="p">(</span><span class="nv">vector3_as_string</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">separator</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">):</span><span class="w"> </span><span class="nc">Vector3</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">choords_split_up</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">string</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="nv">vector3_as_string</span><span class="p">,</span><span class="w"> </span><span class="nv">separator</span><span class="p">)</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">x</span><span class="p">,</span><span class="w"> </span><span class="nv">y</span><span class="p">,</span><span class="w"> </span><span class="nv">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">choords_split_up</span><span class="p">[</span><span class="mf">1</span><span class="p">],</span><span class="w"> </span><span class="nv">choords_split_up</span><span class="p">[</span><span class="mf">2</span><span class="p">],</span><span class="w"> </span><span class="nv">choords_split_up</span><span class="p">[</span><span class="mf">3</span><span class="p">]</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">Vector3</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="nv">x</span><span class="p">,</span><span class="w"> </span><span class="nv">y</span><span class="p">,</span><span class="w"> </span><span class="nv">z</span><span class="p">)</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>Creates a Vector3 based off a string where the x, y, and z choordinates are split by the <code>separator</code>.</p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L294">here</a>.</p>
+</details>
+<h3 id="vector3tocframe">.Vector3ToCFrame()</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo Code</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">Conversions</span><span class="p">.</span><span class="nf">Vector3ToCFrame</span><span class="p">(</span><span class="nv">position</span><span class="p">:</span><span class="w"> </span><span class="nc">Vector3</span><span class="p">,</span><span class="w"> </span><span class="nv">rotation</span><span class="p">:</span><span class="w"> </span><span class="nc">Vector3</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">CFrame</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">CFrame</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="nv">position</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nv">CFrame</span><span class="p">.</span><span class="nf">Angles</span><span class="p">(</span><span class="nv">rotation</span><span class="p">.</span><span class="nv">X</span><span class="p">,</span><span class="w"> </span><span class="nv">rotation</span><span class="p">.</span><span class="nv">Y</span><span class="p">,</span><span class="w"> </span><span class="nv">rotation</span><span class="p">.</span><span class="nv">Z</span><span class="p">)</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>Creates a CFrame with position <code>position</code> and an optional rotation <code>rotation</code>.</p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L313">here</a>.</p>
+</details>
+<h3 id="vector3tostring">.Vector3ToString()</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo Code</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">Conversions</span><span class="p">.</span><span class="nf">Vector3ToString</span><span class="p">(</span><span class="nv">vector</span><span class="p">:</span><span class="w"> </span><span class="nc">Vector3</span><span class="p">,</span><span class="w"> </span><span class="nv">separator</span><span class="p">:</span><span class="w"> </span><span class="nc">string</span><span class="p">,</span><span class="w"> </span><span class="nv">round</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">,</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="nv">places</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">string</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">x</span><span class="p">,</span><span class="nv">y</span><span class="p">,</span><span class="nv">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">vector</span><span class="p">.</span><span class="nv">X</span><span class="p">,</span><span class="w"> </span><span class="nv">vector</span><span class="p">.</span><span class="nv">Y</span><span class="p">,</span><span class="w"> </span><span class="nv">vector</span><span class="p">.</span><span class="nv">Z</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">round</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">        </span><span class="p">...</span><span class="w"> </span><span class="c1">-- Round x, y, and z</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">separator</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">y</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">separator</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">z</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>Creates a string from a Vector3 with its choordiantes separated by <code>separator</code>. Numbers can be rounded if <code>round</code> is specified. If <code>places</code> is specified, then the number will be rounded to that many decimal places.</p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L338">here</a>.</p>
+</details>
+<h3 id="cframeanglestovector3">.CFrameAnglesToVector3()</h3>
+<div class="language-luau highlight"><span class="filename">Psuedo Code</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kr">function</span><span class="w"> </span><span class="nc">module</span><span class="p">.</span><span class="nc">Conversions</span><span class="p">.</span><span class="nf">CFrameAnglesToVector3</span><span class="p">(</span><span class="nv">converted</span><span class="p">:</span><span class="w"> </span><span class="nc">CFrame</span><span class="p">,</span><span class="w"> </span><span class="nv">round</span><span class="p">:</span><span class="w"> </span><span class="nc">boolean</span><span class="err">?</span><span class="p">,</span><span class="w"> </span><span class="nv">places</span><span class="p">:</span><span class="w"> </span><span class="nc">number</span><span class="err">?</span><span class="p">):</span><span class="w"> </span><span class="nc">Vector3</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">x</span><span class="p">,</span><span class="w"> </span><span class="nv">y</span><span class="p">,</span><span class="w"> </span><span class="nv">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">converted</span><span class="p">:</span><span class="nc">ToEulerAnglesXYZ</span><span class="p">()</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="nv">round</span><span class="w"> </span><span class="kr">then</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">        </span><span class="p">...</span><span class="w"> </span><span class="c1">-- Round x, y, and z</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="kr">end</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="kr">return</span><span class="w"> </span><span class="nv">Vector3</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="nv">x</span><span class="p">,</span><span class="w"> </span><span class="nv">y</span><span class="p">,</span><span class="w"> </span><span class="nv">z</span><span class="p">)</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="kr">end</span>
+</span></code></pre></div>
+<p>Creates a Vector3 with x,y,z choords based off the x,y,z angles from the CFrame. Numbers can be rounded if <code>round</code> is specified. If <code>places</code> is specified, then the number will be rounded to that many decimal places.</p>
+<details class="info">
+<summary>Source Code</summary>
+<p>You can check out the code <a href="https://github.com/SarkWrk/testplace/blob/cae7c719aa94e2cbd4b2181985099f26a57d4a83/src/shared/Helpers/GeneralLibrary.luau#L371">here</a>.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.code.select", "content.action.view", "navigation.tracking", "navigation.tabs", "navigation.expand", "navigation.path", "toc.follow", "toc.integrate", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../../javascripts/katex.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/katex.min.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/contrib/auto-render.min.js"></script>
+      
+    
+  </body>
+</html>
