@@ -48,7 +48,7 @@ Please label your Issues and PRs correctly.
 >Always label suggestions with the `suggestion` label and an appropriate `enhancement` or `expiremental` label.
 
 When you are making a suggestion you have two options: making an Issue and making a PR.
-If you're willing to put your code inside the codebase, make a PR. Otherwise, make an Issue.
+If you're willing to put your code inside the repo, make a PR. Otherwise, make an Issue.
 
 ### Making a suggestion through an Issue:
 When you are creating your Issue, preface in the title that it's a suggestion via putting [SUGGESTION\] at the start of the title. And format your Issue like this:
@@ -60,7 +60,7 @@ When you are creating your Issue, preface in the title that it's a suggestion vi
 ### Making a suggestion through a PR:
 When you are creating your PR, preface in the title that it's a suggestion via putting [SUGGESTION\] at the start of the title. And format your PR like this:
 
-**[Goal of the suggestion\] | [Stability of the code\]**
+**[Goal of the suggestion\]**
 
 [Why you think this suggestion should be added\]
 
@@ -69,7 +69,7 @@ When you are creating your PR, preface in the title that it's a suggestion via p
 >[!CAUTION]
 >When adding your code, always make sure to comment what important parts of your code do. E.g.: Functions and important variables.
 >
->**Any non-commented PR suggestions will be closed without consideration.**
+>**Any non-commented PR suggestions may be closed without consideration.**
 
 <hr>
 
@@ -93,15 +93,15 @@ When making an issue, please format your issue like this (formatting is not requ
 [A description/explanation of how you think the issue can be fixed.\]
 
 >[!IMPORTANT]
->**If you know how to code it and are willing to put it into the codebase, please make a [PR](https://github.com/SarkWrk/Testplace/blob/main/CONTRIBUTING.md#making-a-pr) instead of an issue**
+>**If you know how to code it and are willing to put it into the repo, please make a [PR](https://github.com/SarkWrk/Testplace/blob/main/CONTRIBUTING.md#making-a-pr) instead of an issue**
 
 <hr>
 
 ## Making A PR
 >[!NOTE]
->When making a PR, you understand that, if merged, your code will become a part of the codebase and may be removed or modified at any moment.
+>When making a PR, you understand that, if merged, your code will become a part of the repo and may be removed or modified at any moment.
 >
->You also understand that you will be given credit to for the code you contributed on. When accrediting you, if no external means of credit (like a Youtube channel/Discord username/etc) is provided, your GitHub profile with be credited.
+>You also understand that you will be given credit for the code you contributed on in [code-contributions.txt](https://github.com/SarkWrk/testplace/blob/main/code-contributions.txt). When accrediting you, if no external means of credit (like a Youtube channel/Discord username/etc) is provided, your GitHub profile name with be credited.
 
 When you are making a PR, please include the labels `enhancement` or `expiremental` depending on what you're changing.
 
@@ -119,8 +119,6 @@ Please format your PR like this (formatting is not required, but warmly welcomed
 
 [What your code does\]
 
-*Code stability:* [How stable your code is\]
-
 **(If applicable) Documentation Changes:**
 
 [Required changes to the documentation\]
@@ -128,4 +126,4 @@ Please format your PR like this (formatting is not required, but warmly welcomed
 >[!CAUTION]
 >When adding your code, always make sure to comment what important parts of your code do. E.g.: Functions and important variables.
 >
->**Any non-commented PR bug fixes will be closed without consideration.**
+>**Any non-commented PR bug fixes may be closed without consideration.**

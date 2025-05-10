@@ -1,7 +1,7 @@
 --# selene: allow(mixed_table)
 
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
-local vide = require(game:GetService("ReplicatedStorage").dependencies.vide)
+local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("ByteNetPackets"))
+local vide = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Vide"))
 
 local createFunctions = {}
 

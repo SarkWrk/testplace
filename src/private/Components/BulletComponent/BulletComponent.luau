@@ -1,259 +1,222 @@
-local class = {}
-class.interface = {}
-class.schema = {}
-class.metatable = { __index = class.schema }
+local classpp = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Classpp"))
+local class = classpp.class
 
-function class.interface.New(info): Bullet
-	local bullet = setmetatable({}, class.metatable)
+local bullet = class "Bullet" {
+    constructor = function(self, damage : number, enemy_tags: {string}, ignored_tags: {string}, move_towards: CFrame, bullet_drop: number, distance_timeout: number, speed: number, pierce: number, pierce_damage_loss: number, start_position: Vector3)
+        self.damage = damage
+        self.enemy = enemy_tags
+        self.ignore_tagged = ignored_tags
+        self.move_towards = move_towards
+        self.bullet_drop = bullet_drop
+        self.distance_timeout = distance_timeout
+        self.speed = speed
+        self.pierce = pierce
+        self.pierce_damage_loss = pierce_damage_loss
+        self.start_position = start_position
+        self.position = start_position
 
-	bullet.Information = class.schema.SetUpInformation(info)
-	bullet.Variable = class.schema.VariableInformation(bullet.Information)
-	bullet.RBXScriptConnections = {}
-	bullet.Allies = {}
+        self.raycast_parameters.FilterType = Enum.RaycastFilterType.Exclude
+        self.raycast_parameters.RespectCanCollide = true
+        self.overlap_parameters.FilterType = Enum.RaycastFilterType.Exclude
+        self.overlap_parameters.RespectCanCollide = true
 
-	-- Create a raycast params for hitreg
-	bullet.RaycastParameters = RaycastParams.new()
-	bullet.RaycastParameters.FilterType = Enum.RaycastFilterType.Exclude
-	bullet.RaycastParameters.RespectCanCollide = true
+        self:UPDATE_HITREG_PARAMETERS()
+    end,
 
-	bullet.OverlapParameters = OverlapParams.new()
-	bullet.OverlapParameters.FilterType = Enum.RaycastFilterType.Exclude
-	bullet.OverlapParameters.RespectCanCollide = true
+    Public = {
+        damage = 0,
+        enemy = {},
+        ignore_tagged = {},
+        move_towards = CFrame.new(),
+        bullet_drop = 0,
+        distance_timeout = 0,
+        speed = 0,
+        pierce = 0,
+        pierce_damage_loss = 0,
+        start_position = Vector3.new(),
+        to_destroy = false,
+        look_direction = CFrame.new(),
+        parts_pierced = {},
+        already_tagged_instances = {},
 
-	bullet.ListUpdate = {}
+        START = function(self)
+            self:MOVEMENT()
+        end,
 
-	if table.maxn(bullet.Information.IgnoreTagged) ~= 0 then
-		for i, tag in pairs(bullet.Information.IgnoreTagged) do
-			bullet.RaycastParameters:AddToFilter(game:GetService("CollectionService"):GetTagged(tag))
-			bullet.OverlapParameters:AddToFilter(game:GetService("CollectionService"):GetTagged(tag))
+        UPDATE_HITREG_PARAMETERS = function(self)
+            if table.maxn(self.ignore_tagged) ~= 0 then
+                for _, tag in pairs(self.ignore_tagged) do
+                    for _, instance in pairs(game:GetService("CollectionService"):GetTagged(tag)) do
+                        if table.find(self.already_tagged_instances, instance) then
+                            continue
+                        else
+                            table.insert(self.already_tagged_instances, instance)
+                        end
 
-			bullet.ListUpdate[i] = game:GetService("CollectionService")
-				:GetInstanceAddedSignal(tag)
-				:Connect(function(object: Part | Model)
-					bullet.RaycastParameters:AddToFilter(object)
-					bullet.OverlapParameters:AddToFilter(object)
-				end)
-		end
-	end
+                        self.raycast_parameters:AddToFilter(instance)
+                        self.overlap_parameters:AddToFilter(instance)
+                    end
+                end
+            end
+        end,
+    },
 
-	bullet.Movement(bullet)
+    Private = {
+        distance_moved = 0,
+        calculated_moving_direction = Vector3.new(),
+        position = Vector3.new(),
+        adjusted_bullet_drop = 0,
+        raycast_parameters = RaycastParams.new(),
+        overlap_parameters = OverlapParams.new(),
 
-	return bullet
-end
+        PIERCE_FUNCTIONS = function(self, pierced_part: Part|Model)
+            self.parts_pierced[table.maxn(self.parts_pierced) + 1] = pierced_part
+        end,
 
-function class.schema.SetUpInformation(info)
-	local information:{ BulletDrop: number, Damage: number, DistanceTimeOut: number, Enemy : {string}, IgnoreTagged : {string}, MoveTowards : CFrame, Speed : number, Pierce : number, PierceDamageLoss : number, StartPosition : Vector3} = {
-		Damage = info.Damage, -- HP
-		Enemy = info.Enemy, -- Tags
-		IgnoreTagged = info.IgnoreTagged, -- Tags
-		MoveTowards = info.MoveTowards, -- CFrame
-		BulletDrop = info.BulletDrop, -- Studs/sec
-		DistanceTimeOut = info.DistanceTimeOut, -- Studs
-		Speed = info.Speed, -- Studs/sec
-		Pierce = info.Pierce, -- Parts
-		PierceDamageLoss = info.PierceDamageLoss, -- %damage
-		StartPosition = info.StartPosition, -- Vector3
-	}
+        DAMAGE_FUNCTION = function(self, hit_part: Part)
+            if table.maxn(self.parts_pierced) >= self.pierce then
+                self.to_destroy = true -- Tells the programme that it has hit more parts than the pierce limit + 1, and therefore the bullet should afterwards be destroyed
+            else
+                if table.maxn(self.parts_pierced) > 0 then
+                    self.damage = self.damage
+                        - (self.damage / 100 * self.pierce_damage_loss)
+                end
+            end
+        
+            local isEnemy = false
+        
+            -- Check if the part has already been pierced through, and therefore should be ignored
+            if table.find(self.parts_pierced, hit_part) then
+                return
+            end
+        
+            -- Detects if the hitpart or if the clostest ancestor has a tag that is affilated with the enemy
+            for _, v in pairs(self.enemy) do
+                if hit_part:HasTag(v) then
+                    isEnemy = true
+                end
+            end
+            
+            local model = hit_part:FindFirstAncestorOfClass("Model")
+        
+            if isEnemy == false then
+                if model then
+                    for _, v in pairs(self.enemy) do
+                        if model:HasTag(v) then
+                            isEnemy = true
+                        end
+                    end
+                end
+            end
+        
+            -- Destroys itself if it's not an enemy
+            if isEnemy == false then
+                self:PIERCE_FUNCTIONS(hit_part)
+                return
+            end
+        
+            -- Attempts to find the humanoid
+            local humanoid = hit_part:FindFirstChildOfClass("Humanoid")
+        
+            if humanoid == nil then
+                humanoid = model:FindFirstChildOfClass("Humanoid")
+            end
+        
+            -- If there's no Humanoid, destroys itself
+            if not humanoid then
+                self:PIERCE_FUNCTIONS(hit_part)
+                return
+            end
+        
+            local defense = hit_part:GetAttribute("Defense")
+        
+            if defense == nil then
+                defense = model:GetAttribute("Defense")
+            end
+        
+            if defense == nil then
+                defense = 0
+            end
+        
+            humanoid:TakeDamage(self.damage - (self.damage / 100 * defense))
+        
+            self:PIERCE_FUNCTIONS(hit_part)
+        end,
 
-	return information
-end
+        HIT_DETECTION = function(self)
+            self:UPDATE_HITREG_PARAMETERS()
 
-function class.schema.VariableInformation(information:{ StartPosition: Vector3 })
-	local variable : {BulletDrop: number, BulletPart: nil, CalculatedMovingDirection: Vector3, DistanceMoved : number, ToDestroy : boolean, Position : Vector3, PartsPierced : {Instance}, LookDirection : CFrame} = {
-		BulletPart = nil,
-		DistanceMoved = 0,
-		CalculatedMovingDirection = Vector3.new(),
-		ToDestroy = false,
-		Position = information.StartPosition,
-		PartsPierced = {},
-		LookDirection = CFrame.new(),
-		BulletDrop = 0,
-	}
+            if self.to_destroy == true then
+                return
+            end
 
-	return variable
-end
+            local rayCast: RaycastResult? = workspace:Raycast(
+                self.position,
+                (self.calculated_moving_direction - Vector3.new(0, self.adjusted_bullet_drop, 0)) * 1.1,
+                self.raycast_parameters
+            )
 
--- Damages a hit part
-function class.schema.DamageFunction(self: Bullet, hitPart: Part): nil
-	task.desynchronize()
+            if not rayCast then
+                return
+            end
+        
+            self:DAMAGE_FUNCTION(rayCast.Instance)
+        end,
 
-	if table.maxn(self.Variable.PartsPierced) >= self.Information.Pierce then
-		self.Variable.ToDestroy = true -- Tells the programme that it has hit more parts than the pierce limit + 1, and therefore the bullet should afterwards be destroyed
-	else
-		if table.maxn(self.Variable.PartsPierced) > 0 then
-			self.Information.Damage = self.Information.Damage
-				- (self.Information.Damage / 100 * self.Information.PierceDamageLoss)
-		end
-	end
+        LOOK_AT_MOVEMENT_DIRECTION = function(self)
+            self.look_direction = CFrame.lookAt(
+                self.position,
+                self.move_towards.LookVector * self.distance_timeout
+            )
+        end,
 
-	local isEnemy = false
+        MOVEMENT = function(self)
+            self:LOOK_AT_MOVEMENT_DIRECTION()
 
-	-- Check if the part has already been pierced through, and therefore should be ignored
-	if table.find(self.Variable.PartsPierced, hitPart) then
-		return
-	end
+            coroutine.resume(coroutine.create(function()
+                local parts_in_part = workspace:GetPartBoundsInBox(
+                    CFrame.new(self.position),
+                    Vector3.new(0.5, 0.5, 0.5),
+                    self.overlap_parameters
+                )
+        
+                if table.maxn(parts_in_part) ~= 0 then
+                    for _, v in pairs(parts_in_part) do
+                        self.DAMAGE_FUNCTION(v)
+                    end
+                end
+            end))
 
-	-- Detects if the hitpart or if the clostest ancestor has a tag that is affilated with the enemy
-	for _, v in pairs(self.Information.Enemy) do
-		if hitPart:HasTag(v) then
-			isEnemy = true
-		end
-	end
-	
-	local model = hitPart:FindFirstAncestorOfClass("Model")
+            local old_time = time()
 
-	if isEnemy == false then
-		if model then
-			for _, v in pairs(self.Information.Enemy) do
-				if model:HasTag(v) then
-					isEnemy = true
-				end
-			end
-		end
-	end
+            while game:GetService("RunService").Heartbeat:Wait() do
+                local delta_time = time()-old_time
+                old_time = time()
 
-	-- Destroys itself if it's not an enemy
-	if isEnemy == false then
-		self.SafeRemoval(self)
-		self.Variable.PartsPierced[table.maxn(self.Variable.PartsPierced)] = hitPart
-		return
-	end
+                -- Calculates the direction for the bullet to move, and then moves it in that direction
+                self.calculated_moving_direction = self.move_towards.LookVector
+                    * (self.speed * delta_time)
+        
+                self.adjusted_bullet_drop = self.bullet_drop * delta_time
+        
+                self.position = (self.position + self.calculated_moving_direction) - Vector3.new(0, self.adjusted_bullet_drop, 0)
+        
+                self:HIT_DETECTION()
 
-	-- Attempts to find the humanoid
-	local humanoid = hitPart:FindFirstChildOfClass("Humanoid")
+                if self.to_destroy == true then
+                    break
+                end
+        
+                self.distance_moved += self.calculated_moving_direction.Magnitude -- Updates how far the bullet has moved
+        
+                -- If the bullet has moved further than main.DistanceTimeOut, then destroy the bullet
+                if self.distance_moved >= self.distance_timeout then
+                    self.to_destroy = true
+                    break
+                end
+            end
+        end,
+    },
+}
 
-	if humanoid == nil then
-		humanoid = model:FindFirstChildOfClass("Humanoid")
-	end
-
-	-- If there's no Humanoid, destroys itself
-	if not humanoid then
-		self.SaveRemoval(self)
-		self.Variable.PartsPierced[table.maxn(self.Variable.PartsPierced)] = hitPart
-		return
-	end
-
-	local defense = hitPart:GetAttribute("Defense")
-
-	if defense == nil then
-		defense = model:GetAttribute("Defense")
-	end
-
-	if defense == nil then
-		defense = 0
-	end
-
-	task.synchronize()
-
-	humanoid:TakeDamage(self.Information.Damage - (self.Information.Damage / 100 * defense))
-
-	self.SafeRemoval(self)
-	self.Variable.PartsPierced[table.maxn(self.Variable.PartsPierced)] = hitPart
-
-	return nil
-end
-
--- Check if the bullet has hit a part
-function class.schema.HitDetection(self: Bullet): nil
-	-- Returns if the bullet has already hit something
-	if self.Variable.ToDestroy == true then
-		return
-	end
-
-	task.desynchronize()
-
-	local rayCast = workspace:Raycast(
-		self.Variable.Position,
-		(self.Variable.CalculatedMovingDirection - Vector3.new(0, self.Variable.BulletDrop, 0)) * 1.1,
-		self.RaycastParameters
-	)
-
-	if not rayCast then
-		return
-	end
-
-	self.DamageFunction(self, rayCast.Instance)
-
-	return nil
-end
-
--- Sets the CFame to look in the direction that it should be moving towards
-function class.schema.LookAtMovementDirection(self: Bullet): nil
-	self.Variable.LookDirection = CFrame.lookAt(
-		self.Variable.Position,
-		self.Information.MoveTowards.LookVector * self.Information.DistanceTimeOut
-	) * CFrame.Angles(0, math.rad(90), 0)
-
-	return nil
-end
-
--- A function to remove all RBXScriptConnections
-function class.schema.RemoveRBXConnections(self: Bullet): nil
-	task.synchronize()
-	for _, v: RBXScriptConnection in pairs(self.RBXScriptConnections) do
-		v:Disconnect()
-	end
-
-	return nil
-end
-
--- A function to destroy the bullet
-function class.schema.SafeRemoval(self): nil
-	if self.Variable.ToDestroy == true then
-		self.RemoveRBXConnections(self)
-	end
-
-	return nil
-end
-
-function class.schema.UnsafeRemoval(self): nil
-	self.RemoveRBXConnections(self)
-
-	return nil
-end
-
--- Moves the bullet and drops it every second, also destroys the bullet if it has passed main.DistanceTimeOut
-function class.schema.Movement(self: Bullet)
-	self.LookAtMovementDirection(self)
-
-	coroutine.resume(coroutine.create(function()
-		local partsInPart = workspace:GetPartBoundsInBox(
-			CFrame.new(self.Variable.Position),
-			Vector3.new(0.5, 0.5, 0.5),
-			self.OverlapParameters
-		)
-
-		if table.maxn(partsInPart) ~= 0 then
-			for _, v in pairs(partsInPart) do
-				self.DamageFunction(self, v)
-			end
-		end
-	end))
-
-	self.RBXScriptConnections.Movement = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
-		-- Calculates the direction for the bullet to move, and then moves it in that direction
-		self.Variable.CalculatedMovingDirection = self.Information.MoveTowards.LookVector
-			* (self.Information.Speed * deltaTime)
-
-		self.Variable.BulletDrop = self.Information.BulletDrop * deltaTime
-
-		self.Variable.Position = (self.Variable.Position + self.Variable.CalculatedMovingDirection) - Vector3.new(0, self.Information.BulletDrop * deltaTime, 0)
-
-		-- Runs the hitreg in a coroutine
-		coroutine.resume(coroutine.create(function()
-			self.HitDetection(self)
-		end))
-
-		self.Variable.DistanceMoved += self.Variable.CalculatedMovingDirection.Magnitude -- Updates how far the bullet has moved
-
-		-- If the bullet has moved further than main.DistanceTimeOut, then destroy the bullet
-		if self.Variable.DistanceMoved >= self.Information.DistanceTimeOut then
-			self.Variable.ToDestroy = true
-			self.SafeRemoval(self)
-		end
-	end)
-end
-
-export type Bullet = typeof(class.interface.New(table.unpack(...)))
-
-return class
+return bullet

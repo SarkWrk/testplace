@@ -56,8 +56,16 @@ end
 
 game:GetService("Players").PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function(character)
-        CreatePlayerSharedTable(player.Name)
+        if globalTable[player.Name] == nil then
+            print(player.Name .. " has no tracked information!")
+            CreatePlayerSharedTable(player.Name)
+        else
+            character:WaitForChild("Humanoid").Health = globalTable[player.Name]["Health"]
+            character:PivotTo(CFrame.new(globalTable[player.Name]["Position"]))
+        end
 
         TrackPlayerStats(character, player.Name)
     end)
+    
+    player:LoadCharacter()
 end)

@@ -1,0 +1,10 @@
+{
+    "ListType": true,
+
+    "List": [
+        "Bullet",
+        "Grenade",
+        "Gun",
+        "Visualiser"
+    ]
+}

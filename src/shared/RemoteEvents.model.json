@@ -4,6 +4,10 @@
         {
             "ClassName" : "RemoteEvent",
             "Name" : "DroneDirections"
+        },
+        {
+            "ClassName" : "UnreliableRemoteEvent",
+            "Name" : "Weapon_Stuff"
         }
     ]
 }

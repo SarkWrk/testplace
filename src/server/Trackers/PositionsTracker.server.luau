@@ -1,14 +1,16 @@
 local collectionservice = game:GetService("CollectionService")
 local tagInformation = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("PositionsTrackerTagList"))
 local tagsList = collectionservice:GetAllTags()
-local catmullRomPath = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("CRSplineModules"):WaitForChild("CatmullRomPath"))
+local catmullRomPath = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("CRSplineModules"):WaitForChild("CatmullRomPath"))
 local droneModel: Model = game:GetService("ServerStorage"):WaitForChild("Drone")
 local helperModule = require(game:GetService("ReplicatedStorage"):WaitForChild("Helpers"):WaitForChild("GeneralLibrary"))
 local debrisService = game:GetService("Debris")
 local keyInformation = require(game:GetService("ServerStorage"):WaitForChild("Modules"):WaitForChild("MissionImportantPositions")).TestPlace
 local random = Random.new()
-local packets = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("ByteNet"):WaitForChild("Packets"))
-local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies"):WaitForChild("roblox-lua-promise"):WaitForChild("Promise"))
+
+local squash_handler = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies other"):WaitForChild("Squash_Handler"))
+
+local promises = require(game:GetService("ReplicatedStorage"):WaitForChild("dependencies wally"):WaitForChild("Promise"))
 
 local dronePathSmoothening = 100
 local droneSpeed = 100
@@ -166,7 +168,23 @@ local function  FlyDrone(data : {{["Position"] : Vector3, ["Instance"] : Instanc
 
     drone.Parent = workspace.Drones
 
-    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("DroneDirections"):FireAllClients(drone, fixedPositionalData, droneSpeed, dronePathSmoothening)
+    local data_cursor = squash_handler.cursor()
+
+    local position_table = {}
+
+    for index, vector in pairs(fixedPositionalData) do
+        position_table[index] = {X = vector.X, Y = vector.Y, Z = vector.Z}
+    end
+    
+    squash_handler.drone_directions.drone_movement.ser(data_cursor, {
+        drone_speed = droneSpeed,
+        drone_path_smoothening = dronePathSmoothening,
+
+        positions = position_table
+    })
+    local data_buffer = squash_handler.tobuffer(data_cursor)
+
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("DroneDirections"):FireAllClients(squash_handler.prefix_ser(1), drone, data_buffer)
 
     task.wait(totalTime)
 
@@ -196,7 +214,7 @@ end
 
 local function ReportLocations(positions : {["Instance"] : Instance, ["Position"] : Vector3}, tag : string)
     return promises.new(function(resolve)
-        local output = "Trouvé " .. tag .. ".e(s) à :"
+        local output = "Found " .. tag .. "(s) at :"
         local addToTotalSpace = 10
 
         for _, index : {Instance : Instance, Position : Vector3} in pairs(positions) do
@@ -219,17 +237,22 @@ local function ReportLocations(positions : {["Instance"] : Instance, ["Position"
             end
     
             if locatedAtPosition == "" then
-                local relAlt, altExp = helperModule.NumberManipulation.Truncate((Vector3.new(0, index.Position.Y, 0)-Vector3.new(0, keyInformation.Origine.Y, 0)).Magnitude, 3)
-                local relDist, distExp = helperModule.NumberManipulation.Truncate((Vector3.new(index.Position.X, 0, index.Position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
+                local relAlt = helperModule.NumberManipulation.Truncate((Vector3.new(0, index.Position.Y, 0)-Vector3.new(0, keyInformation.Origine.Y, 0)).Magnitude, 3)
+                local relDist = helperModule.NumberManipulation.Truncate((Vector3.new(index.Position.X, 0, index.Position.Z)-Vector3.new(keyInformation.Origine.X, 0, keyInformation.Origine.Z)).Magnitude, 3)
 
-                output = output .. "<br />" .. name .. " à alt. rel. : <i>" .. relAlt * 10 .. "e" .. altExp - 1
-                .. "</i> et dist. rel. : <i>" .. relDist * 10 .. "e" .. distExp - 1 .. "</i>."
+                output = output .. "<br />" .. name .. " at alt. rel. : <i>" .. relAlt
+                .. "</i> and dist. rel. : <i>" .. relDist .. "</i>."
             else
-                output = output .. "<br />" .. name .. " à <i>" .. locatedAtPosition .. "</i>."
+                output = output .. "<br />" .. name .. " at <i>" .. locatedAtPosition .. "</i>."
             end
         end
     
-        packets.SendPositionalInformation.SendPositionalInformation.sendToAll(output)
+        local data_cursor = squash_handler.cursor()
+
+        squash_handler.drone_directions.send_positional_information().ser(data_cursor, output)
+        local data_buffer = squash_handler.tobuffer(data_cursor)
+
+        game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("DroneDirections"):FireAllClients(squash_handler.prefix_ser(2), data_buffer)
 
         resolve("Sent information")
     end)
@@ -237,7 +260,7 @@ end
 
 local function FindPosition(tag : string) : {{["Position"] : Vector3, ["Instance"] : Part|Model}}
     task.desynchronize()
-    local positionalTable = {}
+    local positionalTable = {} :: {Instance: Instance, Position: Vector3}
 
     local instances = collectionservice:GetTagged(tag)
 
@@ -271,7 +294,7 @@ local function FindPosition(tag : string) : {{["Position"] : Vector3, ["Instance
         return PositionTableIndexedByInstancePathName(positionalTable)
     end)
 
-    helperModule.Promises.ExceptionHandler(helperModule.Promises.PromiseHandler(ReportLocations, false, positionalTable, tag))
+    helperModule.Promises.PromiseHandler(ReportLocations, false, positionalTable, tag):ExceptionHandler()
 
     return positionalTable
 end

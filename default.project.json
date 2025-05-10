@@ -3,11 +3,23 @@
   "tree": {
     "$className": "DataModel",
 
+    "Workspace": {
+      "$ignoreUnknownInstances": true,
+      "$path": "src/workspace"
+    },
+    "Players": {
+      "$properties": {
+        "CharacterAutoLoads": false
+      }
+    },
     "ReplicatedStorage": {
       "$ignoreUnknownInstances": true,
       "$path": "src/shared",
-      "Node" : {
+      "dependencies node" : {
         "$path": "node_modules"
+      },
+      "dependencies wally": {
+        "$path": "Packages"
       }
     },
     "ServerScriptService": {
@@ -27,10 +39,6 @@
       "StarterPlayerScripts" : {
         "$path" : "src/character"
       }
-    },
-    "Workspace": {
-      "$ignoreUnknownInstances": true,
-      "$path": "src/workspace"
     }
   }
 }

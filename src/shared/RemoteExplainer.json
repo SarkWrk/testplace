@@ -1,0 +1,11 @@
+{
+    "WeaponStuff": {
+        "1": "ClientBulletCreation",
+        "2": "ServerBulletCreation",
+        "3": "ArmClient"
+    },
+    "DroneDirections": {
+        "1": "DroneMovement",
+        "2": "SendPositionalInformation"
+    }
+}
